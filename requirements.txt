@@ -1,7 +1,7 @@
-Django==5.2.18
-gunicorn==26.2.0
-pillow==13.0.0
-psycopg==3.3.6
-psycopg-binary==3.3.6
+Django==4.2.30
+gunicorn==23.0.0
+pillow==11.3.0
+psycopg==3.2.13
+psycopg-binary==3.2.13
 stripe==16.0.0
-whitenoise==6.12.0
+whitenoise==6.11.0

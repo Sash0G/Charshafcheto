@@ -1,6 +1,6 @@
 # Чаршафчето — online store (dropshipping)
 
-A production-ready e-commerce store built with Django 5.2. It keeps the visual design of the original prototype, which is kept in `prototype/` for reference.
+A production-ready e-commerce store built with Django 4.2 LTS (Python 3.9+). It keeps the visual design of the original prototype, which is kept in `prototype/` for reference.
 
 ## Quick start (local development)
 
