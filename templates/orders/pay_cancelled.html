@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}Плащане — {{ store.store_name }}{% endblock %}
+{% block content %}
+<section class="section"><div class="shell auth-box center">
+  <div class="panel stack">
+    <h2>Плащането не е завършено</h2>
+    <p class="muted">Поръчка <b>{{ order.number }}</b> на стойност <b>{{ order.total|money }}</b> очаква плащане. Продуктите са запазени за вас.</p>
+    <a class="btn btn-primary btn-block" href="{% url 'orders:pay' order.token %}">Опитай отново</a>
+    <form method="post" action="{% url 'orders:cancel' order.token %}">{% csrf_token %}<button class="btn btn-ghost btn-block">Откажи поръчката</button></form>
+  </div>
+</div></section>
+{% endblock %}

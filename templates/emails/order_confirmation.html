@@ -1,0 +1,8 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Благодарим ви, {{ order.full_name }}!</h2>
+<p>Поръчка <b>{{ order.number }}</b> е приета и ще бъде обработена до 1 работен ден.</p>
+{% include "emails/_items.html" %}
+<p><b>Доставка:</b> {{ order.shipping_method_name }}, {{ order.city }}, {{ order.address }}<br><b>Плащане:</b> {{ order.get_payment_method_display }}</p>
+{% if order.payment_method == 'bank' %}<p style="background:#f5f9ff;padding:12px;border-radius:10px">IBAN: <b>{{ store.bank_iban }}</b><br>Получател: {{ store.company_name|default:store.store_name }}<br>Основание: <b>{{ order.number }}</b></p>{% endif %}
+{% url 'orders:detail' order.token as path %}{% with url=site_url|add:path label="Виж поръчката" %}{% include "emails/_button.html" %}{% endwith %}
+{% endblock %}

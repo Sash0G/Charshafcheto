@@ -1,0 +1,27 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}Клиенти{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>Клиенти</h1><p class="d-sub">Регистрирани клиенти и купувачи без профил.</p></div></div>
+<div class="d-tabs"><a href="?tab=registered" class="{% if tab != 'guests' %}active{% endif %}">Регистрирани<small>{{ n_registered }}</small></a><a href="?tab=guests" class="{% if tab == 'guests' %}active{% endif %}">Гости<small>{{ n_guests }}</small></a></div>
+<form class="d-filters" method="get"><input type="hidden" name="tab" value="{{ tab }}"><input type="search" name="q" value="{{ request.GET.q }}" placeholder="Име, имейл, телефон…" aria-label="Търсене"><button class="d-btn solid" type="submit">Търси</button></form>
+<div class="table-wrap"><table class="table d-table">
+  {% if tab == 'guests' %}
+  <thead><tr><th>Клиент</th><th>Телефон</th><th class="num">Поръчки</th><th class="num">Похарчено</th><th>Последна поръчка</th></tr></thead>
+  <tbody>{% for c in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:guest_detail' %}?email={{ c.email|urlencode }}">{{ c.name }}</a><div class="d-muted">{{ c.email }}</div></td>
+    <td>{{ c.phone }}</td><td class="num">{{ c.n_orders }}</td><td class="num"><b>{{ c.spent|default:0|money }}</b></td><td>{{ c.last_order|date:'d.m.Y' }}</td>
+  </tr>{% empty %}<tr><td colspan="5" class="d-empty">Няма поръчки от гости.</td></tr>{% endfor %}</tbody>
+  {% else %}
+  <thead><tr><th>Клиент</th><th>Телефон</th><th>Регистрация</th><th class="num">Поръчки</th><th class="num">Похарчено</th><th>Последна поръчка</th><th>Маркетинг</th></tr></thead>
+  <tbody>{% for c in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:customer_detail' c.pk %}">{{ c.get_full_name|default:c.email }}</a><div class="d-muted">{{ c.email }}{% if not c.is_active %} · деактивиран{% endif %}</div></td>
+    <td>{{ c.phone|default:"—" }}</td><td>{{ c.date_joined|date:'d.m.Y' }}</td>
+    <td class="num">{{ c.n_orders }}</td><td class="num"><b>{{ c.spent|default:0|money }}</b></td>
+    <td>{{ c.last_order|date:'d.m.Y'|default:"—" }}</td>
+    <td>{% if c.marketing_consent %}<span class="status delivered">Да</span>{% else %}<span class="d-muted">Не</span>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="7" class="d-empty">Няма регистрирани клиенти.</td></tr>{% endfor %}</tbody>
+  {% endif %}
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

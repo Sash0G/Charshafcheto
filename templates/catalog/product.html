@@ -1,0 +1,129 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}{{ product.meta_title|default:product.name }} — {{ store.store_name }}{% endblock %}
+{% block meta_description %}{{ product.meta_description|default:product.short_description|truncatechars:160 }}{% endblock %}
+{% block og_title %}{{ product.name }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}{% if product.main_image %}{{ SITE_URL }}{{ product.main_image.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block head %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"{{ product.name|escapejs }}","sku":"{{ product.sku|default:''|escapejs }}",
+ "description":"{{ product.short_description|escapejs }}",{% if product.main_image %}"image":"{{ SITE_URL }}{{ product.main_image.image.url }}",{% endif %}
+ "brand":{"@type":"Brand","name":"{{ store.store_name|escapejs }}"},
+ {% if product.rating_count %}"aggregateRating":{"@type":"AggregateRating","ratingValue":"{{ product.rating_avg|stringformat:'.1f' }}","reviewCount":"{{ product.rating_count }}"},{% endif %}
+ "offers":{"@type":"Offer","priceCurrency":"{{ store.currency }}","price":"{{ product.price|stringformat:'.2f' }}","url":"{{ SITE_URL }}{{ product.get_absolute_url }}",
+   "availability":"https://schema.org/{% if product.in_stock %}InStock{% else %}OutOfStock{% endif %}"}}
+</script>
+{% endblock %}
+{% block content %}
+<section class="page-hero" style="padding:22px 0">
+  <div class="shell"><nav class="crumb" aria-label="Навигация"><a href="{% url 'core:home' %}">Начало</a> / <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a> / {{ product.name }}</nav></div>
+</section>
+<section class="section">
+  <div class="shell product-detail">
+    <div class="gallery">
+      <div class="detail-img" style="position:relative">
+        {% if product.on_sale %}<span class="tag">-{{ product.discount_percent }}%</span>{% elif product.badge %}<span class="tag">{{ product.badge }}</span>{% endif %}
+        {% with img=product.main_image %}{% if img %}<img id="mainImage" src="{{ img.image.url }}" alt="{{ img.alt|default:product.name }}" width="640" height="420">{% endif %}{% endwith %}
+      </div>
+      {% if product.images.all|length > 1 %}
+      <div class="thumbs">{% for img in product.images.all %}<button type="button" class="{% if forloop.first %}active{% endif %}" data-src="{{ img.image.url }}" aria-label="Снимка {{ forloop.counter }}"><img src="{{ img.image.url }}" alt="" loading="lazy"></button>{% endfor %}</div>
+      {% endif %}
+    </div>
+
+    <div class="detail-copy">
+      <div class="eyebrow">{{ product.category.name }}</div>
+      <h2>{{ product.name }}</h2>
+      <a class="stars" href="#reviews">{{ product.rating_avg|stars }} <span style="color:#716b63">{{ product.rating_avg|floatformat:1 }} · {{ product.rating_count }} отзив{{ product.rating_count|pluralize:"а" }}</span></a>
+      <div class="price-row"><span data-variant-price>{% price default_variant.price|default:product.price %}</span>{% if product.on_sale %}<span class="old-price">{{ product.compare_at_price|money }}</span>{% endif %}</div>
+      {% if product.short_description %}<p>{{ product.short_description }}</p>{% endif %}
+
+      {% if variants %}
+      <form method="post" action="{% url 'cart:add' %}" data-ajax="cart-add">{% csrf_token %}
+        <div class="field" style="margin-top:18px">
+          <label>Размер</label>
+          <div class="variant-options" role="radiogroup">
+            {% for v in variants %}{% price v.price as vprice %}
+            <label><input type="radio" name="variant" value="{{ v.pk }}" {% if v.pk == default_variant.pk %}checked{% endif %} {% if not v.available %}disabled{% endif %}
+              data-price-html="{{ vprice|force_escape }}" data-max="{{ v.max_quantity }}"
+              data-stock-label="{% if not v.available %}Изчерпан{% elif not product.track_inventory %}В наличност{% elif v.stock <= store.low_stock_threshold %}Последни {{ v.stock }} бр.{% else %}В наличност{% endif %}"><span>{{ v.name }}</span></label>
+            {% endfor %}
+          </div>
+        </div>
+        <p class="stock" data-variant-stock style="margin:12px 0 0"></p>
+        <div class="buy-row">
+          <div class="qty-input"><button type="button" data-step="-1" aria-label="По-малко">−</button><input id="qtyInput" type="number" name="quantity" value="1" min="1" max="{{ default_variant.max_quantity }}" aria-label="Количество"><button type="button" data-step="1" aria-label="Повече">+</button></div>
+          <button class="btn btn-primary" {% if not product.in_stock %}disabled{% endif %}>{% if product.in_stock %}🛒 Добави в количката{% else %}Изчерпан{% endif %}</button>
+        </div>
+      </form>
+      {% endif %}
+      <form method="post" action="{% url 'catalog:wishlist_toggle' product.pk %}" data-ajax="wish">{% csrf_token %}
+        <button class="btn btn-ghost btn-small">{% if product.pk in wishlist_ids %}<span class="wish on" data-wish-product="{{ product.pk }}" style="border:0;width:auto;background:none">♥</span>{% else %}<span class="wish" data-wish-product="{{ product.pk }}" style="border:0;width:auto;background:none">♡</span>{% endif %} Любими</button>
+      </form>
+
+      <div class="perks">
+        <div><svg class="i"><use href="#i-truck"/></svg> Доставка за {{ product.supplier.processing_days|default:1|add:2 }}–{{ product.supplier.processing_days|default:1|add:4 }} работни дни · безплатна над {{ store.free_shipping_threshold|money }}</div>
+        <div><svg class="i"><use href="#i-return"/></svg> 14 дни право на връщане</div>
+        <div><svg class="i"><use href="#i-shield"/></svg> Плащане с наложен платеж{% if card_payments_enabled %} или карта{% endif %}</div>
+      </div>
+
+      <div class="specs">
+        {% if product.material %}<div class="spec"><span>Материя</span><strong>{{ product.material }}</strong></div>{% endif %}
+        {% if product.pieces %}<div class="spec"><span>Комплект</span><strong>{{ product.pieces }}</strong></div>{% endif %}
+        {% if product.color %}<div class="spec"><span>Цвят</span><strong>{{ product.color }}</strong></div>{% endif %}
+        {% if product.care %}<div class="spec"><span>Поддръжка</span><strong>{{ product.care }}</strong></div>{% endif %}
+        {% if product.sku %}<div class="spec"><span>Код</span><strong>{{ product.sku }}</strong></div>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section tight" id="reviews">
+  <div class="shell" data-tabs>
+    <div class="tabs-nav" role="tablist">
+      <button type="button" class="active" data-tab="desc" role="tab">Описание</button>
+      <button type="button" data-tab="reviews" role="tab">Отзиви ({{ product.rating_count }})</button>
+      <button type="button" data-tab="delivery" role="tab">Доставка и връщане</button>
+    </div>
+    <div class="panel prose" data-tab-panel="desc">{{ product.description|default:product.short_description|safe }}</div>
+    <div class="panel hidden" data-tab-panel="reviews">
+      <div class="rating-summary"><b>{{ product.rating_avg|floatformat:1 }}</b><div><div class="stars" style="font-size:20px">{{ product.rating_avg|stars }}</div><span class="muted small">{{ product.rating_count }} отзив{{ product.rating_count|pluralize:"а" }}</span></div></div>
+      {% for r in reviews %}
+        <div class="review">
+          <div class="review-head"><div><span class="stars">{{ r.rating|stars }}</span> <strong>{{ r.title }}</strong></div><span class="muted small">{{ r.created_at|date:"d.m.Y" }}</span></div>
+          <p>{{ r.body|linebreaksbr }}</p>
+          <span class="small"><strong>{{ r.name }}</strong>{% if r.is_verified %} · <span class="verified">✓ Потвърдена покупка</span>{% endif %}</span>
+        </div>
+      {% empty %}<p class="muted">Все още няма отзиви. Бъдете първият!</p>{% endfor %}
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      {% if can_review %}
+        <h3>Напишете отзив</h3>
+        <form method="post" action="{% url 'catalog:review' product.slug %}" class="form-grid">{% csrf_token %}
+          <div class="field full"><label>Оценка</label>
+            <div class="star-input">{% for n in "54321" %}<input type="radio" id="star{{ n }}" name="rating" value="{{ n }}" required><label for="star{{ n }}" title="{{ n }}">★</label>{% endfor %}</div>
+          </div>
+          <div class="field full"><label for="rv_title">Заглавие</label><input id="rv_title" name="title" maxlength="120"></div>
+          <div class="field full"><label for="rv_body">Отзив</label><textarea id="rv_body" name="body" required></textarea></div>
+          <div class="field full"><button class="btn btn-primary">Изпрати отзив</button></div>
+        </form>
+      {% elif user_review %}
+        <p class="alert info">{% if user_review.is_approved %}Благодарим за вашия отзив!{% else %}Вашият отзив очаква одобрение.{% endif %}</p>
+      {% else %}
+        <p class="muted"><a class="text-link" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}%23reviews">Влезте в профила си</a>, за да оставите отзив.</p>
+      {% endif %}
+    </div>
+    <div class="panel prose hidden" data-tab-panel="delivery">
+      <p>Доставяме със Speedy и Econt до офис или до адрес в цялата страна. Безплатна доставка за поръчки над {{ store.free_shipping_threshold|money }}.</p>
+      <p>Имате 14 дни да върнете продукта без да посочвате причина. <a href="{% url 'core:page' 'vrashtane' %}">Научете повече</a>.</p>
+    </div>
+  </div>
+</section>
+
+{% if related %}
+<section class="section tight">
+  <div class="shell">
+    <div class="section-head"><div><div class="folkline"><span class="folkmark"><i>◆</i> ✦ <i>◆</i></span><h2 class="section-title">Може да харесате <span class="accent">още</span></h2></div></div></div>
+    <div class="products">{% for p in related %}{% include "catalog/_card.html" %}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

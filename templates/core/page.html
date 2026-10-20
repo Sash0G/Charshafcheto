@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} — {{ store.store_name }}{% endblock %}
+{% block meta_description %}{{ page.body|striptags|truncatechars:155 }}{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / {{ page.title }}</nav><h1>{{ page.title }}</h1></div></section>
+<section class="section"><div class="shell" style="max-width:860px"><article class="panel prose">{{ page.body|safe }}</article>
+<p class="small muted">Последна актуализация: {{ page.updated_at|date:"d.m.Y" }}</p></div></section>
+{% endblock %}

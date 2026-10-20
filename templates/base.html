@@ -1,0 +1,127 @@
+{% load static store_tags %}<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e4b37">
+  <title>{% block title %}{{ store.store_name }} — {{ store.tagline|lower }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ store.meta_description }}{% endblock %}">
+  <link rel="canonical" href="{{ SITE_URL }}{% block canonical %}{{ request.path }}{% endblock %}">
+  <meta property="og:site_name" content="{{ store.store_name }}">
+  <meta property="og:title" content="{% block og_title %}{{ store.store_name }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ store.meta_description }}{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ SITE_URL }}{% static 'img/logo.png' %}{% endblock %}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <link rel="icon" href="{% static 'img/logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/store.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<a class="skip-link" href="#main">Към съдържанието</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+{% if store.announcement %}<div class="announcement">{{ store.announcement }}</div>{% endif %}
+<header class="header">
+  <div class="shell">
+    <div class="header-main">
+      <a class="brand" href="{% url 'core:home' %}"><img src="{% static 'img/logo.png' %}" alt="{{ store.store_name }}" width="68" height="68"></a>
+      <form class="search-wrap" action="{% url 'catalog:shop' %}" method="get" role="search">
+        <label class="sr-only" for="globalSearch">Търсене</label>
+        <input id="globalSearch" class="search" name="q" placeholder="Търси спални комплекти, чаршафи, калъфки…" value="{{ request.GET.q|default:'' }}" autocomplete="off">
+        <button class="search-btn" aria-label="Търси"><svg class="i"><use href="#i-search"/></svg></button>
+      </form>
+      <div class="header-actions">
+        <a class="icon-btn" href="{% url 'accounts:dashboard' %}" title="Моят профил" aria-label="Моят профил"><svg class="i"><use href="#i-user"/></svg></a>
+        <a class="icon-btn" href="{% url 'catalog:wishlist' %}" title="Любими" aria-label="Любими" data-wishlist-link><svg class="i"><use href="#i-heart"/></svg><span class="badge" data-wishlist-count>{{ wishlist_ids|length|default:'' }}</span></a>
+        <a class="icon-btn" href="{% url 'cart:detail' %}" title="Количка" aria-label="Количка" data-cart-open><svg class="i"><use href="#i-bag"/></svg><span class="badge" data-cart-count>{{ cart.count|default:'' }}</span></a>
+        <button class="icon-btn mobile-menu" type="button" aria-label="Меню" data-menu-open><svg class="i"><use href="#i-menu"/></svg></button>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Основна навигация">
+      <a href="{% url 'core:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Начало</a>
+      {% for cat in menu_categories %}<a href="{{ cat.get_absolute_url }}" {% if current_category.pk == cat.pk %}class="active"{% endif %}>{{ cat.name }}</a>{% endfor %}
+      <a href="{% url 'catalog:shop' %}" {% if request.resolver_match.url_name == 'shop' and not current_category %}class="active"{% endif %}>Всички продукти</a>
+      <a href="{% url 'catalog:sale' %}" class="accent">Промоции</a>
+      <span class="nav-spacer"></span>
+      {% if user.is_staff %}<a href="{% url 'dashboard:home' %}" class="admin-link">Админ портал</a>{% endif %}
+    </nav>
+  </div>
+</header>
+
+<aside class="mobile-nav" id="mobileNav" aria-label="Мобилно меню">
+  <div class="drawer-head"><h2>Меню</h2><button class="close" type="button" data-close aria-label="Затвори">×</button></div>
+  <form action="{% url 'catalog:shop' %}" method="get" role="search"><input class="search" name="q" placeholder="Търсене…" aria-label="Търсене"></form>
+  <nav>
+    <a href="{% url 'core:home' %}">Начало</a>
+    {% for cat in menu_categories %}<a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>{% endfor %}
+    <a href="{% url 'catalog:shop' %}">Всички продукти</a>
+    <a href="{% url 'catalog:sale' %}" class="accent">Промоции</a>
+    <a href="{% url 'orders:track' %}">Проследи поръчка</a>
+    <a href="{% url 'accounts:dashboard' %}">{% if user.is_authenticated %}Моят профил{% else %}Вход / Регистрация{% endif %}</a>
+    {% if user.is_staff %}<a href="{% url 'dashboard:home' %}" class="admin-link">Админ портал</a>{% endif %}
+  </nav>
+</aside>
+
+<main id="main">{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="shell footer-grid">
+    <div>
+      <img class="footer-logo" src="{% static 'img/logo.png' %}" alt="{{ store.store_name }}" loading="lazy">
+      <p>{{ store.tagline }}. Български дух, съвременен комфорт.</p>
+      <form class="newsletter" method="post" action="{% url 'core:newsletter' %}">{% csrf_token %}
+        <label class="sr-only" for="nlEmail">Имейл за бюлетин</label>
+        <input id="nlEmail" type="email" name="email" placeholder="Вашият имейл" required>
+        <button class="btn btn-primary">Абонирай се</button>
+      </form>
+      <p class="small">Получавайте новини и промоции. Отписване по всяко време.</p>
+    </div>
+    <div>
+      <h4>Магазин</h4>
+      {% for cat in menu_categories %}<a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>{% endfor %}
+      <a href="{% url 'catalog:sale' %}">Промоции</a>
+    </div>
+    <div>
+      <h4>Обслужване</h4>
+      {% for page in footer_pages %}<a href="{{ page.get_absolute_url }}">{{ page.title }}</a>{% endfor %}
+      <a href="{% url 'orders:track' %}">Проследи поръчка</a>
+      <a href="{% url 'core:contact' %}">Контакти</a>
+    </div>
+    <div>
+      <h4>Свържете се с нас</h4>
+      <p>☎ <a href="tel:{{ store.contact_phone|cut:' ' }}" style="display:inline">{{ store.contact_phone }}</a></p>
+      <p>✉ <a href="mailto:{{ store.contact_email }}" style="display:inline">{{ store.contact_email }}</a></p>
+      <p>📍 {{ store.address }}</p>
+      <div class="pay-icons" aria-label="Методи на плащане"><span>НАЛОЖЕН ПЛАТЕЖ</span>{% if card_payments_enabled %}<span>VISA</span><span>MASTERCARD</span>{% endif %}<span>БАНКОВ ПРЕВОД</span></div>
+    </div>
+  </div>
+  <div class="shell copyright">© {% now "Y" %} {{ store.company_name|default:store.store_name }}{% if store.company_eik %} · ЕИК {{ store.company_eik }}{% endif %}. Всички права запазени.</div>
+</footer>
+
+<div class="overlay" data-close></div>
+<aside class="drawer" id="cartDrawer" aria-label="Количка" data-drawer-url="{% url 'cart:drawer' %}">
+  <div class="drawer-head"><h2>Вашата количка</h2><button class="close" type="button" data-close aria-label="Затвори">×</button></div>
+  <div class="drawer-body" style="display:flex;flex-direction:column;flex:1;min-height:0" id="cartDrawerBody"></div>
+</aside>
+
+{% if messages %}<div class="flash-wrap" role="status">{% for m in messages %}<div class="flash {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+
+<div class="cookie-bar hidden" id="cookieBar" role="dialog" aria-label="Бисквитки">
+  <p>Използваме само необходими бисквитки, за да работят количката и профилът ви. <a href="{% url 'core:page' 'biskvitki' %}">Научете повече</a>.</p>
+  <button class="btn btn-green btn-small" type="button" data-cookie-ok>Разбрах</button>
+</div>
+
+<script src="{% static 'js/store.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

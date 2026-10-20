@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Контакти — {{ store.store_name }}{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / Контакти</nav><h1>Свържете се с нас</h1><p class="section-sub">Отговаряме до 1 работен ден.</p></div></section>
+<section class="section"><div class="shell contact-grid">
+  <div class="panel contact-info">
+    <h2>Контакти</h2>
+    <p>☎ <a href="tel:{{ store.contact_phone|cut:' ' }}">{{ store.contact_phone }}</a></p>
+    <p>✉ <a href="mailto:{{ store.contact_email }}">{{ store.contact_email }}</a></p>
+    <p>📍 {{ store.address }}</p>
+    {% if store.company_name %}<p class="small muted">{{ store.company_name }}{% if store.company_eik %}, ЕИК {{ store.company_eik }}{% endif %}</p>{% endif %}
+    <p class="small muted">Работно време: понеделник – петък, 9:00 – 18:00</p>
+    <a class="btn btn-secondary btn-small" href="{% url 'orders:track' %}">Проследи поръчка</a>
+  </div>
+  <form method="post" class="panel form-grid">{% csrf_token %}
+    {% include "_field.html" with field=form.name %}
+    {% include "_field.html" with field=form.email %}
+    {% include "_field.html" with field=form.phone %}
+    {% include "_field.html" with field=form.subject %}
+    {% include "_field.html" with field=form.message class="full" %}
+    <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="field full"><button class="btn btn-primary">Изпрати съобщение</button></div>
+  </form>
+</div></section>
+{% endblock %}

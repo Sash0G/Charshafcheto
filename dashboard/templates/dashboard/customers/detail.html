@@ -1,0 +1,23 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}{{ customer }}{% endblock %}
+{% block content %}
+<div class="d-head"><div><div class="crumb"><a href="{% url 'dashboard:customers' %}">← Клиенти</a></div><h1>{{ customer.get_full_name|default:customer.email }}</h1><p class="d-sub">Клиент от {{ customer.date_joined|date:'d.m.Y' }}{% if customer.last_login %} · последно влизане {{ customer.last_login|date:'d.m.Y H:i' }}{% endif %}</p></div>
+  <div class="d-head-actions"><a class="btn btn-secondary btn-small" href="mailto:{{ customer.email }}">✉ Имейл</a></div></div>
+<div class="d-kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+  <div class="kpi"><small>Поръчки</small><b>{{ n_orders }}</b></div>
+  <div class="kpi"><small>Похарчено</small><b>{{ spent|money }}</b></div>
+  <div class="kpi"><small>Средна поръчка</small><b>{{ aov|money }}</b></div>
+  <div class="kpi"><small>Любими / отзиви</small><b>{{ wishlist_count }} / {{ reviews_count }}</b></div>
+</div>
+<div class="d-grid two">
+  <section class="d-card"><h2>Поръчки</h2>{% include "dashboard/customers/_orders.html" %}</section>
+  <div class="d-stack">
+    <section class="d-card"><h2>Профил</h2><dl class="d-kv">
+      <dt>Имейл</dt><dd>{{ customer.email }}</dd><dt>Телефон</dt><dd>{{ customer.phone|default:"—" }}</dd>
+      <dt>Маркетинг</dt><dd>{% if customer.marketing_consent %}Съгласие дадено{% else %}Без съгласие{% endif %}</dd>
+      <dt>Статус</dt><dd>{% if customer.is_active %}Активен{% else %}Деактивиран{% endif %}</dd></dl></section>
+    <section class="d-card"><h2>Адреси</h2>{% for a in addresses %}<div style="margin-bottom:12px;font-size:14px"><b>{{ a.label }}</b>{% if a.is_default %} <span class="status delivered">основен</span>{% endif %}<div class="d-muted">{{ a.full_name }} · {{ a.phone }}<br>{{ a.line1 }}, {{ a.city }} {{ a.postcode }}</div></div>{% empty %}<p class="d-muted">Няма записани адреси.</p>{% endfor %}</section>
+  </div>
+</div>
+{% endblock %}

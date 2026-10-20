@@ -1,0 +1,17 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}{{ e.title }}{% endblock %}
+{% block content %}
+{% include "dashboard/_list_head.html" with sub="Методите, които клиентът избира при поръчка. Безплатната доставка се задава от Настройки." %}
+<div class="table-wrap"><table class="table d-table">
+  <thead><tr><th>Метод</th><th>Куриер</th><th>Тип</th><th class="num">Цена</th><th>Срок</th><th>Безплатна над прага</th><th>Статус</th><th></th></tr></thead>
+  <tbody>{% for obj in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:shipping_edit' obj.pk %}">{{ obj.name }}</a></td><td>{{ obj.carrier }}</td><td>{{ obj.get_delivery_type_display }}</td>
+    <td class="num">{{ obj.price|money }}</td><td>{{ obj.estimated_days }}</td>
+    <td>{% if obj.free_shipping_eligible %}Да (над {{ store.free_shipping_threshold|money }}){% else %}<span class="d-muted">Не</span>{% endif %}</td>
+    <td><span class="d-dot {% if obj.is_active %}on{% endif %}"></span> {% if obj.is_active %}Активен{% else %}Неактивен{% endif %}</td>
+    <td>{% include "dashboard/_row_actions.html" %}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="d-empty">Няма методи на доставка — клиентите няма да могат да поръчват!</td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

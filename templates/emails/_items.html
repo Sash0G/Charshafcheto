@@ -1,0 +1,7 @@
+{% load store_tags %}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;margin:12px 0">
+{% for i in order.items.all %}<tr><td style="padding:8px 0;border-bottom:1px solid #eee">{{ i.quantity }} × <b>{{ i.product_name }}</b><br><span style="color:#6d6a64">{{ i.variant_name }}</span></td><td align="right" style="padding:8px 0;border-bottom:1px solid #eee;white-space:nowrap">{{ i.line_total|money }}</td></tr>{% endfor %}
+<tr><td style="padding:6px 0">Междинна сума</td><td align="right">{{ order.subtotal|money }}</td></tr>
+{% if order.discount_total %}<tr><td style="padding:6px 0;color:#0f4f3a">Отстъпка {{ order.coupon_code }}</td><td align="right" style="color:#0f4f3a">−{{ order.discount_total|money }}</td></tr>{% endif %}
+<tr><td style="padding:6px 0">Доставка ({{ order.shipping_method_name }})</td><td align="right">{% if order.shipping_total %}{{ order.shipping_total|money }}{% else %}Безплатна{% endif %}</td></tr>
+<tr><td style="padding:10px 0;font-size:17px;font-weight:bold;border-top:2px solid #0f4f3a">Общо</td><td align="right" style="padding:10px 0;font-size:17px;font-weight:bold;border-top:2px solid #0f4f3a">{{ order.total|money }}</td></tr>
+</table>

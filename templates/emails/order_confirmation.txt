@@ -1,0 +1,17 @@
+{% load store_tags %}Благодарим ви, {{ order.full_name }}!
+
+Поръчка {{ order.number }} е приета и ще бъде обработена до 1 работен ден.
+
+{% for i in order.items.all %}{{ i.quantity }} × {{ i.product_name }} ({{ i.variant_name }}) — {{ i.line_total|money }}
+{% endfor %}
+Доставка: {% if order.shipping_total %}{{ order.shipping_total|money }}{% else %}безплатна{% endif %}
+{% if order.discount_total %}Отстъпка: −{{ order.discount_total|money }}
+{% endif %}Общо: {{ order.total|money }}
+
+Доставка: {{ order.shipping_method_name }}, {{ order.city }}, {{ order.address }}
+Плащане: {{ order.get_payment_method_display }}
+{% if order.payment_method == 'bank' %}IBAN: {{ store.bank_iban }} · Основание: {{ order.number }}
+{% endif %}
+Проследяване: {{ site_url }}{% url 'orders:detail' order.token %}
+
+{{ store.store_name }} · {{ store.contact_phone }} · {{ store.contact_email }}

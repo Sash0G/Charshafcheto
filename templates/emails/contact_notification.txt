@@ -1,0 +1,4 @@
+{{ msg.subject }}
+{{ msg.name }} · {{ msg.email }} {{ msg.phone }}
+
+{{ msg.message }}

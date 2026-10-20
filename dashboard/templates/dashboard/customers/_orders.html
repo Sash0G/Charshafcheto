@@ -1,0 +1,4 @@
+{% load store_tags %}<div class="table-wrap"><table class="table d-table"><thead><tr><th>Поръчка</th><th>Дата</th><th>Статус</th><th>Плащане</th><th class="num">Общо</th></tr></thead><tbody>
+{% for o in orders %}<tr><td><a class="d-strong" href="{% url 'dashboard:order_detail' o.pk %}">{{ o.number }}</a></td><td>{{ o.created_at|date:'d.m.Y H:i' }}</td><td><span class="status {{ o.status|status_class }}">{{ o.get_status_display }}</span></td><td>{{ o.get_payment_method_display }}</td><td class="num"><b>{{ o.total|money }}</b></td></tr>
+{% empty %}<tr><td colspan="5" class="d-empty">Няма поръчки.</td></tr>{% endfor %}
+</tbody></table></div>

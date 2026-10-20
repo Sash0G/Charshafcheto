@@ -1,0 +1,14 @@
+{% extends "accounts/_layout.html" %}
+{% block panel %}
+<div class="panel">
+  <div class="admin-top"><h2>Адреси</h2><a class="btn btn-primary btn-small" href="{% url 'accounts:address_add' %}">+ Добави адрес</a></div>
+  {% if addresses %}<div class="address-grid">{% for a in addresses %}
+    <div class="address-card">{% if a.is_default %}<span class="status delivered default">Основен</span>{% endif %}
+      <strong>{{ a.label }}</strong>
+      <p>{{ a.full_name }} · {{ a.phone }}<br>{{ a.city }}{% if a.postcode %} {{ a.postcode }}{% endif %}<br>{{ a.line1 }}</p>
+      <div class="mini-actions"><a class="btn btn-ghost btn-small" href="{% url 'accounts:address_edit' a.pk %}">Редактирай</a>
+        <form method="post" action="{% url 'accounts:address_delete' a.pk %}" onsubmit="return confirm('Да изтрия ли адреса?')">{% csrf_token %}<button class="btn btn-ghost btn-small" style="color:var(--red)">Изтрий</button></form></div>
+    </div>{% endfor %}</div>
+  {% else %}<div class="empty">Нямате запазени адреси.</div>{% endif %}
+</div>
+{% endblock %}

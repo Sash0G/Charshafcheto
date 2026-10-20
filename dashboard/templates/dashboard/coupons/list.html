@@ -1,0 +1,19 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}{{ e.title }}{% endblock %}
+{% block content %}
+{% include "dashboard/_list_head.html" with sub="Отстъпки, които клиентите въвеждат в количката." %}
+<div class="table-wrap"><table class="table d-table">
+  <thead><tr><th>Код</th><th>Отстъпка</th><th>Условия</th><th>Валидност</th><th class="num">Използван</th><th>Статус</th><th></th></tr></thead>
+  <tbody>{% now "U" as now_ts %}{% for obj in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:coupons_edit' obj.pk %}"><code>{{ obj.code }}</code></a><div class="d-muted">{{ obj.description }}</div></td>
+    <td><b>{{ obj.label }}</b></td>
+    <td class="d-muted">{% if obj.min_order_total %}над {{ obj.min_order_total|money }}{% endif %}{% if obj.first_order_only %} · първа поръчка{% endif %}{% if obj.once_per_customer %} · веднъж на клиент{% endif %}{% if not obj.min_order_total and not obj.first_order_only and not obj.once_per_customer %}—{% endif %}</td>
+    <td class="d-muted">{% if obj.valid_from %}от {{ obj.valid_from|date:'d.m.Y' }} {% endif %}{% if obj.valid_until %}до {{ obj.valid_until|date:'d.m.Y' }}{% endif %}{% if not obj.valid_from and not obj.valid_until %}безсрочен{% endif %}</td>
+    <td class="num">{{ obj.times_used }}{% if obj.usage_limit %} / {{ obj.usage_limit }}{% endif %}</td>
+    <td>{% if not obj.is_active %}<span class="status pending">Неактивен</span>{% elif obj.valid_until and obj.valid_until|date:'U' < now_ts %}<span class="status cancelled">Изтекъл</span>{% elif obj.usage_limit and obj.times_used >= obj.usage_limit %}<span class="status cancelled">Изчерпан</span>{% else %}<span class="status delivered">Активен</span>{% endif %}</td>
+    <td>{% include "dashboard/_row_actions.html" %}</td>
+  </tr>{% empty %}<tr><td colspan="7" class="d-empty">Няма промо кодове.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

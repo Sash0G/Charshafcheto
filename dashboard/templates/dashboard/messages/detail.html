@@ -1,0 +1,14 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ msg.subject }}{% endblock %}
+{% block content %}
+<div class="d-head"><div><div class="crumb"><a href="{% url 'dashboard:messages' %}">← Съобщения</a></div><h1>{{ msg.subject }}</h1><p class="d-sub">{{ msg.name }} · {{ msg.created_at|date:'d.m.Y H:i' }}</p></div>
+  <div class="d-head-actions">
+    <a class="btn btn-primary btn-small" href="mailto:{{ msg.email }}?subject={{ 'Re: '|add:msg.subject|urlencode }}">✉ Отговори</a>
+    <form method="post" action="{% url 'dashboard:message_action' msg.pk %}">{% csrf_token %}<button class="btn btn-secondary btn-small" name="action" value="unread">Маркирай като непрочетено</button></form>
+    <form method="post" action="{% url 'dashboard:message_action' msg.pk %}" data-confirm="Да изтрия ли съобщението?">{% csrf_token %}<button class="btn btn-secondary btn-small" name="action" value="delete">Изтрий</button></form>
+  </div></div>
+<div class="d-grid two">
+  <section class="d-card"><div style="white-space:pre-wrap;line-height:1.6">{{ msg.message }}</div></section>
+  <section class="d-card"><h2>Подател</h2><dl class="d-kv"><dt>Име</dt><dd>{{ msg.name }}</dd><dt>Имейл</dt><dd><a href="mailto:{{ msg.email }}">{{ msg.email }}</a></dd><dt>Телефон</dt><dd>{{ msg.phone|default:"—" }}</dd></dl></section>
+</div>
+{% endblock %}

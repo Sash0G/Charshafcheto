@@ -1,0 +1,7 @@
+Здравейте, {{ order.full_name }}!
+
+Статусът на поръчка {{ order.number }} е обновен: {{ order.get_status_display }}.
+
+Детайли: {{ site_url }}{% url 'orders:detail' order.token %}
+
+{{ store.store_name }} · {{ store.contact_phone }}

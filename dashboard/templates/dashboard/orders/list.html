@@ -1,0 +1,35 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}Поръчки{% endblock %}
+{% block content %}
+<div class="d-head">
+  <div><h1>Поръчки</h1><p class="d-sub">Управление на поръчките, плащанията и изпращането.</p></div>
+  <div class="d-head-actions"><a class="btn btn-secondary btn-small" href="{% url 'dashboard:orders_export' %}?{{ request.GET.urlencode }}">⬇ Експорт CSV</a></div>
+</div>
+<div class="d-tabs">{% for key, label, n in tabs %}<a href="?{% url_replace status=key page=None %}" class="{% if status == key %}active{% endif %}">{{ label }}<small>{{ n }}</small></a>{% endfor %}</div>
+<form class="d-filters" method="get">
+  <input type="hidden" name="status" value="{{ status }}">
+  <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Номер, име, имейл, телефон, товарителница…" aria-label="Търсене">
+  <select name="payment" data-autosubmit aria-label="Плащане"><option value="">Всички плащания</option>{% for k, l in payment_choices %}<option value="{{ k }}" {% if request.GET.payment == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <input type="date" name="from" value="{{ request.GET.from }}" aria-label="От дата">
+  <input type="date" name="to" value="{{ request.GET.to }}" aria-label="До дата">
+  <button class="d-btn solid" type="submit">Филтрирай</button>
+  {% if request.GET %}<a class="d-btn" href="{% url 'dashboard:orders' %}">Изчисти</a>{% endif %}
+</form>
+<div class="table-wrap"><table class="table d-table">
+  <thead><tr><th>Поръчка</th><th>Дата</th><th>Клиент</th><th>Доставка</th><th>Плащане</th><th>Статус</th><th class="num">Общо</th><th class="num">Печалба</th></tr></thead>
+  <tbody>
+  {% for o in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:order_detail' o.pk %}">{{ o.number }}</a>{% if o.needs_invoice %}<div class="d-muted">фактура</div>{% endif %}</td>
+    <td>{{ o.created_at|date:'d.m.Y' }}<div class="d-muted">{{ o.created_at|date:'H:i' }}</div></td>
+    <td>{{ o.full_name }}<div class="d-muted">{{ o.email }} · {{ o.phone }}</div></td>
+    <td>{{ o.shipping_method_name }}<div class="d-muted">{{ o.city }}</div></td>
+    <td>{{ o.get_payment_method_display }}<div><span class="status {{ o.payment_status|status_class }}">{{ o.get_payment_status_display }}</span></div></td>
+    <td><span class="status {{ o.status|status_class }}">{{ o.get_status_display }}</span></td>
+    <td class="num"><b>{{ o.total|money }}</b></td>
+    <td class="num">{{ o.profit|money }}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="d-empty">Няма поръчки, отговарящи на филтрите.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

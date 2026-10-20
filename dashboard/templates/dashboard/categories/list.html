@@ -1,0 +1,19 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ e.title }}{% endblock %}
+{% block content %}
+{% include "dashboard/_list_head.html" with sub="Структура на каталога и главното меню." %}
+<div class="table-wrap"><table class="table d-table">
+  <thead><tr><th></th><th>Категория</th><th>Родител</th><th class="num">Продукти</th><th class="num">Ред</th><th>В менюто</th><th>Статус</th><th></th></tr></thead>
+  <tbody>{% for obj in page %}<tr>
+    <td>{% if obj.image %}<img class="d-thumb" src="{{ obj.image.url }}" alt="">{% else %}<div class="d-thumb"></div>{% endif %}</td>
+    <td><a class="d-strong" href="{% url 'dashboard:categories_edit' obj.pk %}">{{ obj.name }}</a><div class="d-muted">/{{ obj.slug }}{% if obj.tagline %} · {{ obj.tagline }}{% endif %}</div></td>
+    <td>{{ obj.parent|default:"—" }}</td>
+    <td class="num"><a href="{% url 'dashboard:products' %}?category={{ obj.pk }}">{{ obj.n_products }}</a></td>
+    <td class="num">{{ obj.position }}</td>
+    <td>{% if obj.show_in_menu %}Да{% else %}<span class="d-muted">Не</span>{% endif %}</td>
+    <td><span class="d-dot {% if obj.is_active %}on{% endif %}"></span> {% if obj.is_active %}Активна{% else %}Скрита{% endif %}</td>
+    <td>{% include "dashboard/_row_actions.html" %}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="d-empty">Няма категории.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Поръчка за изпълнение {{ order.number }}</h2>
+<p>Здравейте, {{ supplier_order.supplier.contact_person|default:supplier_order.supplier.name }}! Моля, изпратете следните продукти директно до нашия клиент:</p>
+<table role="presentation" width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px">
+<tr style="background:#f8f3eb"><th align="left">Продукт</th><th align="left">Ваш код</th><th align="right">Кол.</th></tr>
+{% for i in items %}<tr><td style="border-bottom:1px solid #eee">{{ i.product_name }} — {{ i.variant_name }}</td><td style="border-bottom:1px solid #eee">{{ i.supplier_sku|default:i.sku }}</td><td align="right" style="border-bottom:1px solid #eee">{{ i.quantity }}</td></tr>{% endfor %}
+</table>
+<p><b>Получател:</b> {{ order.full_name }}, тел. {{ order.phone }}<br><b>Доставка:</b> {{ order.shipping_method_name }} — {{ order.city }}{% if order.postcode %} {{ order.postcode }}{% endif %}, {{ order.address }}<br>
+{% if order.payment_method == 'cod' and order.payment_status != 'paid' %}<b>Наложен платеж:</b> {{ order.total|floatformat:2 }} {{ order.currency }} (по договорка){% else %}<b>Плащане:</b> платено — без наложен платеж{% endif %}</p>
+<p>Моля, отговорете на този имейл с номера на товарителницата. Благодарим!</p>
+{% endblock %}

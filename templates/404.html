@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Страницата не е намерена — {{ store.store_name }}{% endblock %}
+{% block content %}
+<section class="error-page"><div class="shell"><div class="code">404</div><h1 style="font-size:36px">Страницата не е намерена</h1><p class="section-sub">Може би е преместена или вече не съществува.</p>
+<div class="form-actions" style="justify-content:center;margin-top:20px"><a class="btn btn-primary" href="{% url 'core:home' %}">Към началото</a><a class="btn btn-secondary" href="{% url 'catalog:shop' %}">Към магазина</a></div></div></section>
+{% endblock %}

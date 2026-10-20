@@ -1,0 +1,17 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Журнал{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>Журнал на действията</h1><p class="d-sub">Кой какво е променил в админ панела.</p></div></div>
+<form class="d-filters" method="get">
+  <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Търсене в описанието…" aria-label="Търсене">
+  <select name="user" data-autosubmit aria-label="Служител"><option value="">Всички служители</option>{% for u in users %}<option value="{{ u.pk }}" {% if request.GET.user == u.pk|stringformat:'s' %}selected{% endif %}>{{ u }}</option>{% endfor %}</select>
+  <select name="type" data-autosubmit aria-label="Обект"><option value="">Всички обекти</option>{% for t in types %}{% if t %}<option {% if request.GET.type == t %}selected{% endif %}>{{ t }}</option>{% endif %}{% endfor %}</select>
+  <select name="action" data-autosubmit aria-label="Действие"><option value="">Всички действия</option>{% for a in actions %}<option {% if request.GET.action == a %}selected{% endif %}>{{ a }}</option>{% endfor %}</select>
+  <button class="d-btn solid" type="submit">Филтрирай</button>
+</form>
+<div class="table-wrap"><table class="table d-table"><thead><tr><th>Кога</th><th>Служител</th><th>Действие</th><th>Обект</th><th>Описание</th><th>IP</th></tr></thead><tbody>
+{% for log in page %}<tr><td style="white-space:nowrap">{{ log.created_at|date:'d.m.Y H:i' }}</td><td>{{ log.user|default:"—" }}</td><td><code>{{ log.action }}</code></td><td class="d-muted">{{ log.object_type }}{% if log.object_id %} #{{ log.object_id }}{% endif %}</td><td>{{ log.summary }}</td><td class="d-muted">{{ log.ip_address|default:"" }}</td></tr>
+{% empty %}<tr><td colspan="6" class="d-empty">Няма записи.</td></tr>{% endfor %}
+</tbody></table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

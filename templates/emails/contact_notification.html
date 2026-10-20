@@ -1,0 +1,5 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">{{ msg.subject }}</h2>
+<p><b>{{ msg.name }}</b> · {{ msg.email }}{% if msg.phone %} · {{ msg.phone }}{% endif %}</p>
+<p style="white-space:pre-wrap">{{ msg.message }}</p>
+{% endblock %}

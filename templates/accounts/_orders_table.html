@@ -1,0 +1,9 @@
+{% load store_tags %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Поръчка</th><th>Дата</th><th>Продукти</th><th>Статус</th><th>Общо</th><th></th></tr></thead>
+  <tbody>{% for o in orders %}
+    <tr><td><b>{{ o.number }}</b></td><td>{{ o.created_at|date:"d.m.Y" }}</td><td>{{ o.item_count }}</td>
+      <td><span class="status {{ o.status|status_class }}">{{ o.get_status_display }}</span></td><td><b>{{ o.total|money }}</b></td>
+      <td><a class="text-link" href="{{ o.get_absolute_url }}">Детайли →</a></td></tr>
+  {% endfor %}</tbody>
+</table></div>

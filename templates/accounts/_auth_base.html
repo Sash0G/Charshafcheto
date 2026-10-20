@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / {% block crumb %}{% endblock %}</nav><h1>{% block heading %}{% endblock %}</h1>{% block sub %}{% endblock %}</div></section>
+<section class="section"><div class="shell auth-box">{% block box %}{% endblock %}</div></section>
+{% endblock %}

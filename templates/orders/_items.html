@@ -1,0 +1,16 @@
+{% load store_tags %}
+<div class="table-wrap"><table class="table" style="min-width:520px">
+  <thead><tr><th>Продукт</th><th>Цена</th><th>Кол.</th><th style="text-align:right">Общо</th></tr></thead>
+  <tbody>
+  {% for item in order.items.all %}
+    <tr><td><b>{% if item.product %}<a href="{{ item.product.get_absolute_url }}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}</b><br><span class="muted">{{ item.variant_name }}</span></td>
+      <td>{{ item.unit_price|money }}</td><td>{{ item.quantity }}</td><td style="text-align:right"><b>{{ item.line_total|money }}</b></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<div style="max-width:340px;margin-left:auto;margin-top:12px">
+  <div class="sum-row"><span>Междинна сума</span><span>{{ order.subtotal|money }}</span></div>
+  {% if order.discount_total %}<div class="sum-row discount"><span>Отстъпка{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</span><span>−{{ order.discount_total|money }}</span></div>{% endif %}
+  <div class="sum-row"><span>Доставка</span><span>{% if order.shipping_total %}{{ order.shipping_total|money }}{% else %}Безплатна{% endif %}</span></div>
+  <div class="sum-row total"><span>Общо</span><span>{{ order.total|money }}</span></div>
+</div>

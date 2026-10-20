@@ -1,0 +1,34 @@
+{% load store_tags %}
+<div class="drawer-content">
+  {% if cart.is_empty %}
+    <div class="empty">Количката е празна.<br><br><a href="{% url 'catalog:shop' %}" class="btn btn-primary">Към магазина</a></div>
+  {% else %}
+    {% include "cart/_free_ship.html" %}
+    {% for line in cart %}
+    <div class="cart-item">
+      <a href="{{ line.product.get_absolute_url }}">{% with img=line.product.main_image %}{% if img %}<img src="{{ img.image.url }}" alt="">{% endif %}{% endwith %}</a>
+      <div>
+        <a href="{{ line.product.get_absolute_url }}"><b>{{ line.product.name }}</b></a>
+        <div class="muted" style="font-size:12px;margin-top:3px">{{ line.variant.name }} · {{ line.unit_price|money }}</div>
+        <div class="qty">
+          <form method="post" action="{% url 'cart:update' line.variant.pk %}" data-ajax="drawer">{% csrf_token %}<input type="hidden" name="quantity" value="{{ line.quantity|add:-1 }}"><button aria-label="По-малко">−</button></form>
+          <span>{{ line.quantity }}</span>
+          <form method="post" action="{% url 'cart:update' line.variant.pk %}" data-ajax="drawer">{% csrf_token %}<input type="hidden" name="quantity" value="{{ line.quantity|add:1 }}"><button aria-label="Повече" {% if line.quantity >= line.variant.max_quantity %}disabled{% endif %}>+</button></form>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <form method="post" action="{% url 'cart:remove' line.variant.pk %}" data-ajax="drawer">{% csrf_token %}<button class="close" style="width:30px;height:30px;font-size:16px" aria-label="Премахни">×</button></form>
+        <div style="font-weight:800;margin-top:10px">{{ line.line_total|money }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% if not cart.is_empty %}
+<div class="drawer-footer">
+  <div class="cart-total"><span>Междинна сума</span><span>{{ totals.subtotal|money }}</span></div>
+  <p class="small muted" style="margin:-4px 0 12px">Доставката се изчислява при поръчка.</p>
+  <a class="btn btn-primary btn-block" href="{% url 'orders:checkout' %}">Към поръчка →</a>
+  <a class="btn btn-ghost btn-block" href="{% url 'cart:detail' %}" style="margin-top:8px">Виж количката</a>
+</div>
+{% endif %}

@@ -1,0 +1,21 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Импорт на продукти{% endblock %}
+{% block content %}
+<div class="d-head"><div><div class="crumb"><a href="{% url 'dashboard:products' %}">← Продукти</a></div><h1>Импорт на продукти от CSV</h1><p class="d-sub">Създава нови или обновява съществуващи варианти по артикулен номер (sku).</p></div></div>
+<div class="d-grid two">
+  <form method="post" enctype="multipart/form-data" class="d-card d-form" novalidate>{% csrf_token %}
+    <h2>Качване на файл</h2>
+    <div class="form-grid">{% include "dashboard/_field.html" with field=form.file full=True %}</div>
+    <div class="d-form-actions"><div class="left"><button class="btn btn-primary" type="submit">Импортирай</button></div></div>
+    {% if result %}
+      <div class="d-msg {% if result.errors %}warning{% else %}success{% endif %}" style="margin-top:16px">Нови продукти: {{ result.created }} · обновени: {{ result.updated }} · грешки: {{ result.errors|length }}</div>
+      {% if result.errors %}<ul class="d-muted" style="margin-top:10px">{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    {% endif %}
+  </form>
+  <section class="d-card"><h2>Формат</h2>
+    <p class="d-muted" style="margin-top:0">Първият ред трябва да съдържа заглавията на колоните. Разделител: запетая или точка и запетая. Кодиране UTF-8.</p>
+    <div class="table-wrap"><table class="table" style="min-width:0"><tbody>{% for c in columns %}<tr><td><code>{{ c }}</code></td><td class="d-muted">{% if c == 'sku' %}задължително — уникален код на варианта{% elif c == 'price' %}задължително — цена на варианта{% elif c == 'name' or c == 'category' %}задължително за нови продукти{% elif c == 'variant' %}име на варианта (напр. размер){% elif c == 'supplier' %}име на съществуващ доставчик{% else %}по избор{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+    <p class="d-muted">Съвет: експортирайте текущите продукти, за да получите готов шаблон.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Поръчка {{ order.number }}: {{ order.get_status_display|lower }}</h2>
+<p>Здравейте, {{ order.full_name }}! Статусът на вашата поръчка е обновен на <b>{{ order.get_status_display }}</b>.</p>
+{% if order.status == 'delivered' %}<p>Надяваме се да ви хареса! Ще се радваме на вашия отзив за продуктите.</p>{% endif %}
+{% if order.status == 'cancelled' and order.payment_status == 'paid' %}<p>Платената сума ще бъде възстановена до 5 работни дни.</p>{% endif %}
+{% url 'orders:detail' order.token as path %}{% with url=site_url|add:path label="Виж поръчката" %}{% include "emails/_button.html" %}{% endwith %}
+{% endblock %}

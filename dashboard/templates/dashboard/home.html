@@ -1,0 +1,93 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags l10n %}
+{% block title %}Табло{% endblock %}
+{% block content %}
+<div class="d-head">
+  <div><h1>Табло</h1><p class="d-sub">Добре дошли, {{ request.user.first_name|default:request.user.email }}. Ето какво се случва в магазина.</p></div>
+  <div class="d-tabs" style="margin:0">{% for key, n in periods.items %}<a href="?period={{ key }}" class="{% if period == key %}active{% endif %}">{{ n }} дни</a>{% endfor %}</div>
+</div>
+
+<div class="d-attention">
+  <a href="{% url 'dashboard:orders' %}?status=new" class="{% if not attention.new %}zero{% endif %}"><b>{{ attention.new }}</b> нови поръчки</a>
+  <a href="{% url 'dashboard:orders' %}?status=confirmed" class="{% if not attention.to_forward %}zero{% endif %}"><b>{{ attention.to_forward }}</b> чакат препращане към доставчик</a>
+  {% if attention.pending_payment %}<a href="{% url 'dashboard:orders' %}?status=pending_payment"><b>{{ attention.pending_payment }}</b> неплатени с карта</a>{% endif %}
+  <a href="{% url 'dashboard:messages' %}?unread=1" class="{% if not attention.messages %}zero{% endif %}"><b>{{ attention.messages }}</b> непрочетени съобщения</a>
+  <a href="{% url 'dashboard:reviews' %}" class="{% if not attention.reviews %}zero{% endif %}"><b>{{ attention.reviews }}</b> отзива за одобрение</a>
+</div>
+
+<div class="d-kpis">
+  {% with d=deltas.revenue %}<div class="kpi"><small>Оборот</small><b>{{ kpi.revenue|money }}</b><em class="{% if d is None %}flat{% elif d < 0 %}down{% endif %}">{% if d is None %}няма данни за сравнение{% else %}{% if d >= 0 %}↑{% else %}↓{% endif %} {{ d }}% спрямо предходния период{% endif %}</em></div>{% endwith %}
+  {% with d=deltas.orders %}<div class="kpi"><small>Поръчки</small><b>{{ kpi.orders }}</b><em class="{% if d is None %}flat{% elif d < 0 %}down{% endif %}">{% if d is None %}—{% else %}{% if d >= 0 %}↑{% else %}↓{% endif %} {{ d }}%{% endif %}</em></div>{% endwith %}
+  {% with d=deltas.aov %}<div class="kpi"><small>Средна поръчка</small><b>{{ kpi.aov|money }}</b><em class="{% if d is None %}flat{% elif d < 0 %}down{% endif %}">{% if d is None %}—{% else %}{% if d >= 0 %}↑{% else %}↓{% endif %} {{ d }}%{% endif %}</em></div>{% endwith %}
+  {% with d=deltas.profit %}<div class="kpi"><small>Брутна печалба</small><b>{{ kpi.profit|money }}</b><em class="{% if kpi.margin <= 0 %}down{% endif %}">марж {{ kpi.margin|floatformat:1 }}%</em></div>{% endwith %}
+  <div class="kpi"><small>Нови клиенти</small><b>{{ new_customers }}</b><em class="flat">регистрации за периода</em></div>
+</div>
+
+<div class="d-grid two">
+  <section class="d-card">
+    <h2>Оборот по дни <small>последните {{ period }} дни · без отказани и неплатени</small></h2>
+    {% if chart.has_data %}
+    {% localize off %}<div class="d-chart-wrap">
+      <svg class="d-chart" viewBox="0 0 {{ chart.w }} {{ chart.h }}" role="img" aria-label="Оборот по дни за последните {{ period }} дни">
+        {% for g in chart.grid %}
+        <line class="grid" x1="{{ chart.pad_l }}" x2="{{ chart.right }}" y1="{{ g.y }}" y2="{{ g.y }}"></line>
+        <text class="axis" x="{{ chart.pad_l|add:-8 }}" y="{{ g.y }}" dy="4" text-anchor="end">{{ g.value|floatformat:0 }}</text>
+        {% endfor %}
+        {% for b in chart.bars %}
+        <g class="col" tabindex="0" data-cx="{{ b.cx }}" data-cy="{{ b.y }}" data-tip-value="{{ b.value|money }}" data-tip-date="{{ b.date|date:'D, d.m.Y' }}">
+          <rect class="hit" x="{{ b.hit_x }}" y="0" width="{{ b.hit_w }}" height="{{ chart.baseline }}"></rect>
+          {% if b.path %}<path class="bar" d="{{ b.path }}"></path>{% endif %}
+          <title>{{ b.date|date:'d.m.Y' }}: {{ b.value|money }}</title>
+        </g>
+        {% if b.label %}<text class="axis" x="{{ b.cx }}" y="{{ chart.label_y }}" text-anchor="middle">{{ b.date|date:'d.m' }}</text>{% endif %}
+        {% endfor %}
+        <line x1="{{ chart.pad_l }}" x2="{{ chart.right }}" y1="{{ chart.baseline }}" y2="{{ chart.baseline }}" stroke="#cfc3b2"></line>
+      </svg>
+      <div class="d-tip" aria-hidden="true"></div>
+    </div>{% endlocalize %}
+    <details style="margin-top:10px;font-size:13px"><summary class="d-muted" style="cursor:pointer">Покажи като таблица</summary>
+      <div class="table-wrap" style="margin-top:8px;max-height:260px"><table class="table" style="min-width:0"><thead><tr><th>Дата</th><th class="num">Оборот</th></tr></thead><tbody>
+      {% for b in chart.bars reversed %}<tr><td>{{ b.date|date:'d.m.Y' }}</td><td class="num" style="text-align:right">{{ b.value|money }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </details>
+    {% else %}<div class="d-empty">Все още няма продажби за този период.</div>{% endif %}
+  </section>
+
+  <section class="d-card">
+    <h2>Топ продукти <small>по продадени бройки</small></h2>
+    {% if top_products %}
+    <table class="table" style="min-width:0"><thead><tr><th>Продукт</th><th class="num" style="text-align:right">Бр.</th><th class="num" style="text-align:right">Оборот</th></tr></thead><tbody>
+      {% for p in top_products %}<tr><td>{% if p.product_id %}<a href="{% url 'dashboard:product_edit' p.product_id %}" class="d-strong">{{ p.product_name }}</a>{% else %}{{ p.product_name }}{% endif %}</td><td style="text-align:right">{{ p.units }}</td><td style="text-align:right;white-space:nowrap">{{ p.revenue|money }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<div class="d-empty">Няма продажби за периода.</div>{% endif %}
+  </section>
+</div>
+
+<div class="d-grid two" style="margin-top:18px">
+  <section class="d-card">
+    <h2>Последни поръчки <a class="d-btn" href="{% url 'dashboard:orders' %}">Всички поръчки →</a></h2>
+    <div class="table-wrap"><table class="table d-table"><thead><tr><th>Поръчка</th><th>Клиент</th><th>Дата</th><th>Статус</th><th class="num">Общо</th></tr></thead><tbody>
+      {% for o in recent_orders %}<tr>
+        <td><a class="d-strong" href="{% url 'dashboard:order_detail' o.pk %}">{{ o.number }}</a></td>
+        <td>{{ o.full_name }}<div class="d-muted">{{ o.phone }}</div></td>
+        <td>{{ o.created_at|date:'d.m.Y H:i' }}</td>
+        <td><span class="status {{ o.status|status_class }}">{{ o.get_status_display }}</span></td>
+        <td class="num"><b>{{ o.total|money }}</b></td>
+      </tr>{% empty %}<tr><td colspan="5" class="d-empty">Още няма поръчки.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="d-card">
+    <h2>Ниска наличност <a class="d-btn" href="{% url 'dashboard:products' %}?low=1">Всички →</a></h2>
+    {% if low_stock %}
+    <table class="table" style="min-width:0"><tbody>
+      {% for v in low_stock %}<tr>
+        <td><a class="d-strong" href="{% url 'dashboard:product_edit' v.product_id %}">{{ v.product.name }}</a><div class="d-muted">{{ v.name }}{% if v.sku %} · {{ v.sku }}{% endif %}</div></td>
+        <td style="white-space:nowrap"><span class="status {% if v.stock <= 0 %}cancelled{% else %}new{% endif %}">{{ v.stock }} бр.</span></td>
+        <td><form method="post" action="{% url 'dashboard:variant_stock' v.pk %}" class="d-actions">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><input type="hidden" name="delta" value="10"><button class="d-btn green" type="submit" title="Добави 10 бр.">+10</button></form></td>
+      </tr>{% endfor %}
+    </tbody></table>
+    {% else %}<div class="d-empty">Всички продукти са с добра наличност. ✓</div>{% endif %}
+  </section>
+</div>
+{% endblock %}

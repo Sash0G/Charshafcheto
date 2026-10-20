@@ -1,0 +1,63 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}{{ title }} — {{ store.store_name }}{% endblock %}
+{% block meta_description %}{{ subtitle|default:store.meta_description|truncatechars:160 }}{% endblock %}
+{% block head %}{% if q or has_filters or page_obj.number > 1 %}<meta name="robots" content="noindex,follow">{% endif %}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="shell">
+    <nav class="crumb" aria-label="Навигация"><a href="{% url 'core:home' %}">Начало</a> / <a href="{% url 'catalog:shop' %}">Магазин</a>{% if current_category %} / {{ current_category.name }}{% endif %}</nav>
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<p class="section-sub">{{ subtitle }}</p>{% endif %}
+  </div>
+</section>
+<section class="section">
+  <div class="shell shop-layout">
+    <form class="filters" method="get" aria-label="Филтри">
+      {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <div class="group">
+        <h3>Категории</h3>
+        <a class="cat {% if not current_category and not is_sale %}active{% endif %}" href="{% url 'catalog:shop' %}">Всички продукти</a>
+        {% for c in categories %}<a class="cat {% if current_category.pk == c.pk %}active{% endif %}" href="{{ c.get_absolute_url }}">{{ c.name }}</a>{% endfor %}
+        <a class="cat {% if is_sale %}active{% endif %}" href="{% url 'catalog:sale' %}" style="color:var(--red)">Промоции</a>
+      </div>
+      <div class="group">
+        <h3>Цена ({{ store.currency_symbol }})</h3>
+        <div class="price-range">
+          <input type="number" name="min" min="0" step="1" placeholder="от" value="{{ request.GET.min }}" aria-label="Минимална цена">
+          <input type="number" name="max" min="0" step="1" placeholder="до" value="{{ request.GET.max }}" aria-label="Максимална цена">
+        </div>
+      </div>
+      {% if materials %}
+      <div class="group">
+        <h3>Материя</h3>
+        <div class="field"><select name="material" aria-label="Материя"><option value="">Всички</option>{% for m in materials %}<option {% if request.GET.material == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+      </div>
+      {% endif %}
+      <div class="group"><label class="check"><input type="checkbox" name="in_stock" value="1" {% if request.GET.in_stock %}checked{% endif %}> Само налични</label></div>
+      <div class="form-actions"><button class="btn btn-green btn-small">Приложи</button>{% if has_filters %}<a class="text-link" href="?{% if q %}q={{ q|urlencode }}{% endif %}">Изчисти</a>{% endif %}</div>
+    </form>
+
+    <div>
+      <div class="list-head">
+        <div class="muted small">{{ page_obj.paginator.count }} продукт{{ page_obj.paginator.count|pluralize:"а" }}</div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost btn-small filter-toggle" data-filters-toggle>Филтри</button>
+          <form method="get">
+            {% for k, v in request.GET.items %}{% if k != 'sort' and k != 'page' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+            <label class="sr-only" for="sortSel">Подреди</label>
+            <select id="sortSel" name="sort" data-autosubmit>{% for key, label in sorts %}<option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <noscript><button class="btn btn-small btn-ghost">OK</button></noscript>
+          </form>
+        </div>
+      </div>
+      {% if products %}
+        <div class="products cols-3">{% for p in products %}{% include "catalog/_card.html" %}{% endfor %}</div>
+        {% include "_pagination.html" %}
+      {% else %}
+        <div class="empty panel">Няма продукти, които отговарят на търсенето.<br><br><a class="btn btn-primary" href="{% url 'catalog:shop' %}">Виж всички продукти</a></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

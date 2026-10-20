@@ -1,0 +1,6 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Добре дошли, {{ user.first_name|default:user.email }}!</h2>
+<p>Моля, потвърдете имейл адреса си, за да активирате всички възможности на профила.</p>
+{% with label="Потвърди имейла" %}{% include "emails/_button.html" %}{% endwith %}
+<p style="color:#6d6a64;font-size:13px">Линкът е валиден 3 дни. Ако не сте създавали профил, игнорирайте това съобщение.</p>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Настройки{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>Настройки на магазина</h1><p class="d-sub">Промените се прилагат веднага в целия магазин.</p></div></div>
+<form method="post" class="d-form" novalidate>{% csrf_token %}
+  {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  <div class="d-grid halves">
+    {% for title, fields in form.fieldsets %}<fieldset class="d-card"><legend>{{ title }}</legend><div class="form-grid">{% for field in fields %}{% include "dashboard/_field.html" %}{% endfor %}</div></fieldset>{% endfor %}
+  </div>
+  <div class="d-card d-form-actions" style="margin-top:18px"><div class="left"><button class="btn btn-primary" type="submit">Запази настройките</button></div></div>
+</form>
+{% endblock %}

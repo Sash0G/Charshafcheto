@@ -1,0 +1,26 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}Отзиви{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>Отзиви</h1><p class="d-sub">Новите отзиви се публикуват след одобрение.</p></div></div>
+<div class="d-tabs"><a href="?tab=pending" class="{% if tab == 'pending' %}active{% endif %}">Чакащи<small>{{ n_pending }}</small></a><a href="?tab=approved" class="{% if tab == 'approved' %}active{% endif %}">Одобрени<small>{{ n_approved }}</small></a></div>
+<form class="d-filters" method="get"><input type="hidden" name="tab" value="{{ tab }}"><input type="search" name="q" value="{{ request.GET.q }}" placeholder="Продукт, автор, текст…" aria-label="Търсене"><button class="d-btn solid" type="submit">Търси</button></form>
+<div class="d-stack" style="gap:12px">
+{% for r in page %}
+  <article class="d-card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div><span class="stars">{{ r.rating|stars }}</span> <b>{{ r.title|default:"Без заглавие" }}</b>
+        <div class="d-muted">{{ r.name }}{% if r.user %} ({{ r.user.email }}){% endif %} · {{ r.created_at|date:'d.m.Y H:i' }} · за <a href="{% url 'dashboard:product_edit' r.product_id %}">{{ r.product.name }}</a>{% if r.is_verified %} · <span class="status delivered">потвърдена покупка</span>{% endif %}</div></div>
+      <div class="d-actions">
+        <form method="post" action="{% url 'dashboard:review_action' r.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% if r.is_approved %}<button class="d-btn" name="action" value="unapprove">Скрий</button>{% else %}<button class="d-btn solid" name="action" value="approve">✓ Одобри</button>{% endif %}
+        </form>
+        <form method="post" action="{% url 'dashboard:review_action' r.pk %}" data-confirm="Да изтрия ли отзива?">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="d-btn danger" name="action" value="delete">Изтрий</button></form>
+      </div>
+    </div>
+    <p style="margin:10px 0 0;line-height:1.55;white-space:pre-wrap">{{ r.body }}</p>
+  </article>
+{% empty %}<div class="d-card d-empty">{% if tab == 'pending' %}Няма отзиви за одобрение. ✓{% else %}Няма одобрени отзиви.{% endif %}</div>{% endfor %}
+</div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

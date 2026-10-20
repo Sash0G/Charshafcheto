@@ -1,0 +1,11 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>{{ title }}</h1></div></div>
+<form method="post" class="d-card" style="max-width:620px">
+  {% csrf_token %}
+  <p style="margin-top:0">Сигурни ли сте, че искате да изтриете <b>„{{ object }}“</b>? Действието е необратимо.</p>
+  {% if warning %}<div class="d-msg warning" style="margin-bottom:14px">{{ warning }}</div>{% endif %}
+  <div class="d-form-actions"><div class="left"><button class="btn btn-danger" type="submit">{% if warning %}Скрий продукта{% else %}Да, изтрий{% endif %}</button><a class="btn btn-secondary" href="{% url cancel_url %}">Отказ</a></div></div>
+</form>
+{% endblock %}

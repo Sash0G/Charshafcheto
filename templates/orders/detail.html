@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}Поръчка {{ order.number }} — {{ store.store_name }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb">{% if user.is_authenticated %}<a href="{% url 'accounts:orders' %}">Моите поръчки</a>{% else %}<a href="{% url 'core:home' %}">Начало</a>{% endif %} / {{ order.number }}</nav>
+  <h1 style="font-size:40px">Поръчка {{ order.number }}</h1><p class="section-sub">от {{ order.created_at|date:"d.m.Y, H:i" }} · <span class="status {{ order.status|status_class }}">{{ order.get_status_display }}</span></p></div></section>
+<section class="section"><div class="shell" style="max-width:960px">
+  {% if order.status != 'cancelled' and order.status != 'returned' and order.status != 'pending_payment' %}
+  <div class="timeline" aria-label="Статус">
+    <div class="{% if order.progress_step >= 0 %}done{% endif %}">Приета</div>
+    <div class="{% if order.progress_step >= 1 %}done{% endif %}">Потвърдена</div>
+    <div class="{% if order.progress_step >= 2 %}done{% endif %}">Изпратена</div>
+    <div class="{% if order.progress_step >= 3 %}done{% endif %}">Доставена</div>
+  </div>
+  {% endif %}
+  {% if order.status == 'pending_payment' %}<div class="alert info">Поръчката очаква плащане с карта. <a class="text-link" href="{% url 'orders:pay' order.token %}">Плати сега →</a></div>{% endif %}
+  {% include "orders/_bank.html" %}
+  {% if order.tracking_number %}<div class="alert success">Пратката е изпратена с {{ order.carrier|default:"куриер" }}. Товарителница: <b>{{ order.tracking_number }}</b>{% if order.tracking_url %} · <a class="text-link" href="{{ order.tracking_url }}" target="_blank" rel="noopener">Проследи пратката →</a>{% endif %}</div>{% endif %}
+
+  <div class="panel stack">{% include "orders/_items.html" %}</div>
+  <div class="form-grid" style="margin-top:16px">
+    <div class="panel"><h3 class="mt-0">Доставка</h3><p class="mb-0">{{ order.full_name }}<br>{{ order.phone }}<br>{{ order.shipping_method_name }}<br>{{ order.city }}{% if order.postcode %} {{ order.postcode }}{% endif %}, {{ order.address }}</p></div>
+    <div class="panel"><h3 class="mt-0">Плащане</h3><p class="mb-0">{{ order.get_payment_method_display }}<br><span class="status {{ order.payment_status|status_class }}">{{ order.get_payment_status_display }}</span>{% if order.needs_invoice %}<br><br>Фактура към: {{ order.company_name }}, ЕИК {{ order.company_eik }}{% endif %}</p></div>
+  </div>
+  {% if events %}<div class="panel" style="margin-top:16px"><h3 class="mt-0">История</h3>{% for e in events %}<div class="spec"><span>{{ e.created_at|date:"d.m.Y H:i" }}</span><span>{{ e.message }}</span></div>{% endfor %}</div>{% endif %}
+  <div class="form-actions no-print" style="margin-top:18px">
+    <a class="btn btn-secondary" href="{% url 'orders:invoice' order.token %}" target="_blank">Разпечатай</a>
+    <a class="btn btn-ghost" href="{% url 'core:contact' %}?subject={{ order.number|urlencode }}">Въпрос за поръчката</a>
+    {% if order.is_cancellable_by_customer %}
+    <form method="post" action="{% url 'orders:cancel' order.token %}" onsubmit="return confirm('Сигурни ли сте, че искате да откажете поръчката?')">{% csrf_token %}<button class="btn btn-ghost" style="color:var(--red)">Откажи поръчката</button></form>
+    {% endif %}
+  </div>
+</div></section>
+{% endblock %}

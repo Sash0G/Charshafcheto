@@ -1,0 +1,19 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ e.title }}{% endblock %}
+{% block content %}
+{% include "dashboard/_list_head.html" with sub="Партньори, които изпълняват поръчките директно към клиента (дропшипинг)." %}
+<div class="table-wrap"><table class="table d-table">
+  <thead><tr><th>Доставчик</th><th>Контакт</th><th class="num">Срок</th><th class="num">Продукти</th><th class="num">Поръчки</th><th>Автоматично</th><th>Статус</th><th></th></tr></thead>
+  <tbody>{% for obj in page %}<tr>
+    <td><a class="d-strong" href="{% url 'dashboard:supplier_detail' obj.pk %}">{{ obj.name }}</a>{% if obj.website %}<div class="d-muted"><a href="{{ obj.website }}" target="_blank" rel="noopener">{{ obj.website|truncatechars:40 }}</a></div>{% endif %}</td>
+    <td>{{ obj.contact_person|default:"—" }}<div class="d-muted">{{ obj.email|default:"няма имейл" }}{% if obj.phone %} · {{ obj.phone }}{% endif %}</div></td>
+    <td class="num">{{ obj.processing_days }} дни</td>
+    <td class="num"><a href="{% url 'dashboard:products' %}?supplier={{ obj.pk }}">{{ obj.n_products }}</a></td>
+    <td class="num">{{ obj.n_orders }}</td>
+    <td>{% if obj.auto_forward %}<span class="status processing">Препраща</span>{% else %}<span class="d-muted">Ръчно</span>{% endif %}</td>
+    <td><span class="d-dot {% if obj.is_active %}on{% endif %}"></span> {% if obj.is_active %}Активен{% else %}Неактивен{% endif %}</td>
+    <td>{% include "dashboard/_row_actions.html" %}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="d-empty">Няма доставчици.</td></tr>{% endfor %}</tbody>
+</table></div>
+{% include "dashboard/_pager.html" %}
+{% endblock %}

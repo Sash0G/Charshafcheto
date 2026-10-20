@@ -1,0 +1,19 @@
+# Automatic HTTPS via Let's Encrypt. Set DOMAIN in .env (e.g. charshafcheto.bg).
+{$DOMAIN:localhost}, www.{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	handle_path /media/* {
+		root * /srv/media
+		header Cache-Control "public, max-age=2592000"
+		header X-Content-Type-Options nosniff
+		file_server
+	}
+
+	handle {
+		reverse_proxy web:8000
+	}
+
+	request_body {
+		max_size 20MB
+	}
+}

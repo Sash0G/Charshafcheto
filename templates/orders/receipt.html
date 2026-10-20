@@ -1,0 +1,13 @@
+{% load static store_tags %}<!doctype html>
+<html lang="bg"><head><meta charset="utf-8"><title>Поръчка {{ order.number }}</title><link rel="stylesheet" href="{% static 'css/store.css' %}">
+<style>body{background:#fff;padding:30px}.doc{max-width:800px;margin:0 auto}.doc-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--green);padding-bottom:16px;margin-bottom:20px}</style></head>
+<body><div class="doc">
+  <div class="doc-head"><img src="{% static 'img/logo.png' %}" alt="" style="height:70px"><div style="text-align:right"><h2 style="margin:0">Потвърждение на поръчка</h2><b>{{ order.number }}</b><br>{{ order.created_at|date:"d.m.Y" }}</div></div>
+  <div class="form-grid" style="margin-bottom:20px">
+    <div><b>Продавач</b><br>{{ store.company_name|default:store.store_name }}{% if store.company_eik %}<br>ЕИК {{ store.company_eik }}{% endif %}<br>{{ store.address }}<br>{{ store.contact_email }}</div>
+    <div><b>Клиент</b><br>{{ order.full_name }}<br>{{ order.phone }} · {{ order.email }}<br>{{ order.city }}, {{ order.address }}{% if order.needs_invoice %}<br>{{ order.company_name }}, ЕИК {{ order.company_eik }}{% endif %}</div>
+  </div>
+  {% include "orders/_items.html" %}
+  <p class="small muted" style="margin-top:30px">Плащане: {{ order.get_payment_method_display }} ({{ order.get_payment_status_display|lower }}). Доставка: {{ order.shipping_method_name }}. Цените са с включен ДДС. Този документ не е фактура.</p>
+  <button class="btn btn-primary no-print" onclick="print()">Печат</button>
+</div></body></html>

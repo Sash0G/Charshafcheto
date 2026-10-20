@@ -1,0 +1,5 @@
+{% load dashboard_tags %}{% with wt=field|field_type %}<div class="field{% if wt == 'CheckboxInput' %} check{% endif %}{% if full or wt == 'Textarea' %} full{% endif %}{% if field.errors %} has-error{% endif %}">
+  {% if wt == 'CheckboxInput' %}{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% endif %}
+  {% if field.help_text %}<span class="help">{{ field.help_text|safe }}</span>{% endif %}
+  {% for e in field.errors %}<span class="err">{{ e }}</span>{% endfor %}
+</div>{% endwith %}

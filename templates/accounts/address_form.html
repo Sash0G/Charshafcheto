@@ -1,0 +1,15 @@
+{% extends "accounts/_layout.html" %}
+{% block panel %}
+<div class="panel"><h2>{% if address %}Редактиране на адрес{% else %}Нов адрес{% endif %}</h2>
+  <form method="post" class="form-grid">{% csrf_token %}
+    {% include "_field.html" with field=form.label class="full" %}
+    {% include "_field.html" with field=form.full_name %}
+    {% include "_field.html" with field=form.phone %}
+    {% include "_field.html" with field=form.city %}
+    {% include "_field.html" with field=form.postcode %}
+    {% include "_field.html" with field=form.line1 class="full" %}
+    {% include "_field.html" with field=form.is_default class="full" %}
+    <div class="field full form-actions"><button class="btn btn-primary">Запази</button><a class="text-link" href="{% url 'accounts:addresses' %}">Отказ</a></div>
+  </form>
+</div>
+{% endblock %}

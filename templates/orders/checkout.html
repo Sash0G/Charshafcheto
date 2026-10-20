@@ -1,0 +1,87 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}Поръчка — {{ store.store_name }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="page-hero" style="padding:30px 0 22px"><div class="shell"><nav class="crumb"><a href="{% url 'cart:detail' %}">Количка</a> / Поръчка</nav><h1 style="font-size:40px">Завършване на поръчката</h1></div></section>
+<section class="section" style="padding-top:30px">
+  <div class="shell">
+    {% if not user.is_authenticated %}<div class="alert info">Имате профил? <a class="text-link" href="{% url 'accounts:login' %}?next={{ request.path }}">Влезте</a> за по-бързо попълване. Можете да поръчате и без регистрация.</div>{% endif %}
+    {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="checkout-layout">
+      <form method="post" id="checkoutForm" novalidate data-currency="{{ store.currency_symbol }}" data-base="{{ base_total|stringformat:'.2f' }}">{% csrf_token %}
+        <div class="panel">
+          <h2 class="step-title"><span>1</span> Данни за контакт</h2>
+          <div class="form-grid">
+            {% include "_field.html" with field=form.full_name class="full" %}
+            {% include "_field.html" with field=form.email %}
+            {% include "_field.html" with field=form.phone %}
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="step-title"><span>2</span> Доставка</h2>
+          <div class="radio-cards" role="radiogroup" aria-label="Метод на доставка">
+            {% for m, cost, checked in shipping_options %}
+            <label class="radio-card">
+              <input type="radio" name="shipping_method" value="{{ m.pk }}" {% if checked %}checked{% endif %} data-type="{{ m.delivery_type }}" data-cost="{{ cost|stringformat:'.2f' }}">
+              <span class="rc-main"><strong>{{ m.name }}</strong><small>{{ m.get_delivery_type_display }} · {{ m.estimated_days }}</small></span>
+              <span class="rc-price">{% if cost %}{{ cost|money }}{% else %}Безплатна{% endif %}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {{ form.shipping_method.errors }}
+          <div class="form-grid" style="margin-top:16px">
+            {% include "_field.html" with field=form.city %}
+            {% include "_field.html" with field=form.postcode %}
+            {% include "_field.html" with field=form.address class="full" %}
+            {% if user.is_authenticated %}{% include "_field.html" with field=form.save_address class="full" attrs='data-delivery="address"' %}{% endif %}
+          </div>
+          <p class="small muted" data-delivery="office">Напишете адреса или името на офиса на Speedy/Econt, в който желаете да получите пратката.</p>
+        </div>
+
+        <div class="panel">
+          <h2 class="step-title"><span>3</span> Плащане</h2>
+          <div class="radio-cards">
+            {% for choice in form.payment_method %}
+            <label class="radio-card">{{ choice.tag }}<span class="rc-main"><strong>{{ choice.choice_label }}</strong><small>{% for k, v in payment_help.items %}{% if k == choice.data.value %}{{ v }}{% endif %}{% endfor %}</small></span></label>
+            {% endfor %}
+          </div>
+          {{ form.payment_method.errors }}
+          <div class="form-grid" style="margin-top:16px">
+            {% include "_field.html" with field=form.needs_invoice class="full" %}
+          </div>
+          <div class="form-grid hidden" data-invoice-fields style="margin-top:12px">
+            {% include "_field.html" with field=form.company_name %}
+            {% include "_field.html" with field=form.company_eik %}
+            {% include "_field.html" with field=form.company_vat %}
+            {% include "_field.html" with field=form.company_mol %}
+            {% include "_field.html" with field=form.company_address class="full" %}
+          </div>
+          <div class="form-grid" style="margin-top:12px">{% include "_field.html" with field=form.customer_note class="full" %}</div>
+        </div>
+      </form>
+
+      <aside class="summary">
+        <h3>Вашата поръчка</h3>
+        {% for line in cart %}
+          <div class="mini-line">{% with img=line.product.main_image %}{% if img %}<img src="{{ img.image.url }}" alt="">{% endif %}{% endwith %}
+            <div><b>{{ line.product.name }}</b><div class="muted">{{ line.variant.name }} · {{ line.quantity }} бр.</div></div><b>{{ line.line_total|money }}</b></div>
+        {% endfor %}
+        <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px">
+          <div class="sum-row"><span>Междинна сума</span><span>{{ totals.subtotal|money }}</span></div>
+          {% if totals.coupon %}<div class="sum-row discount"><span>Отстъпка ({{ totals.coupon.code }})</span><span>−{{ totals.discount|money }}</span></div>{% endif %}
+          <div class="sum-row"><span>Доставка</span><span data-sum-shipping>{% if totals.shipping %}{{ totals.shipping|money }}{% else %}Безплатна{% endif %}</span></div>
+          <div class="sum-row total"><span>Общо</span><span data-sum-total>{{ totals.total|money }}</span></div>
+          <p class="small muted" style="margin:0 0 6px">Цените са с включен ДДС.</p>
+        </div>
+        {% include "cart/_coupon.html" %}
+        <div class="stack">
+          {% include "_field.html" with field=form.accept_terms %}
+          <button type="submit" form="checkoutForm" class="btn btn-primary btn-block" style="font-size:16px"><span data-submit-label>Потвърди поръчката</span></button>
+          <div class="secure-note"><svg class="i" style="width:15px;height:15px"><use href="#i-lock"/></svg> Данните ви са защитени · <a class="text-link" href="{% url 'core:page' 'obshti-usloviya' %}" target="_blank">Общи условия</a></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

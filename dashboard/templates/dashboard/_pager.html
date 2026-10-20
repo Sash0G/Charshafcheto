@@ -1,0 +1,8 @@
+{% load store_tags %}{% if page.paginator.count %}<div class="d-pager">
+  <span>{{ page.start_index }}–{{ page.end_index }} от {{ page.paginator.count }}</span>
+  {% if page.has_other_pages %}<nav aria-label="Страници">
+    {% if page.has_previous %}<a href="?{% url_replace page=page.previous_page_number %}">← Назад</a>{% endif %}
+    {% for n in page.paginator.page_range %}{% if n == page.number %}<span class="cur">{{ n }}</span>{% elif n > page.number|add:-3 and n < page.number|add:3 or n == 1 or n == page.paginator.num_pages %}<a href="?{% url_replace page=n %}">{{ n }}</a>{% endif %}{% endfor %}
+    {% if page.has_next %}<a href="?{% url_replace page=page.next_page_number %}">Напред →</a>{% endif %}
+  </nav>{% endif %}
+</div>{% endif %}

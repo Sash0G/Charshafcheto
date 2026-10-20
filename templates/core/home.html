@@ -1,0 +1,86 @@
+{% extends "base.html" %}{% load static store_tags %}
+{% block content %}
+<section class="hero">
+  <div class="shell hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow">Текстил с български дух</div>
+      <h1>Комфорт и стил <span class="accent">за всяка спалня</span></h1>
+      <p>Качествени спални комплекти, чаршафи и текстил за дома, вдъхновени от българските традиции и създадени за вашия уют.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="{% url 'catalog:shop' %}">Разгледай колекцията →</a>
+        <a class="btn btn-secondary" href="{% url 'accounts:dashboard' %}">Моят профил</a>
+      </div>
+      <div class="trust-row"><span>✓ Качествени материи</span><span>✓ Бърза доставка</span><span>✓ Лесно връщане</span></div>
+    </div>
+    <div class="hero-art"><img src="{% static 'img/products/hero.svg' %}" alt="Спалня Чаршафчето" width="480" height="315"><div class="hero-note">Повече уют<br>в живота! ♥</div></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="shell">
+    <div class="section-head">
+      <div><div class="folkline"><span class="folkmark"><i>◆</i> ✦ <i>◆</i></span><h2 class="section-title">Нашите <span class="accent">категории</span></h2></div><p class="section-sub">Всичко необходимо за една по-уютна спалня.</p></div>
+      <a href="{% url 'catalog:shop' %}" class="text-link">Виж всички →</a>
+    </div>
+    <div class="categories">
+      {% for c in categories %}
+      <a class="cat-card" href="{{ c.get_absolute_url }}">
+        <div class="cat-visual">{% if c.image %}<img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy">{% endif %}</div>
+        <div class="cat-info"><div><h3>{{ c.name }}</h3><p>{{ c.tagline }}</p></div><span class="circle-arrow" style="display:grid;place-items:center">→</span></div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="shell">
+    <div class="section-head">
+      <div><div class="folkline"><span class="folkmark"><i>◆</i> ✦ <i>◆</i></span><h2 class="section-title">Популярни <span class="accent">продукти</span></h2></div></div>
+      <a href="{% url 'catalog:shop' %}" class="text-link">Виж всички продукти →</a>
+    </div>
+    <div class="products">{% for p in featured %}{% include "catalog/_card.html" %}{% endfor %}</div>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="shell">
+    <div class="promo">
+      <div><h3>🚚 Безплатна доставка</h3><p>при поръчки над {{ store.free_shipping_threshold|money }}</p></div>
+      <div class="promo-divider"></div>
+      <div><h3>🏷️ Промоции до -30%</h3><p><a href="{% url 'catalog:sale' %}" style="color:#fff;text-decoration:underline">на избрани спални комплекти</a></p></div>
+    </div>
+  </div>
+</section>
+
+{% if new_arrivals %}
+<section class="section tight">
+  <div class="shell">
+    <div class="section-head"><div><div class="folkline"><span class="folkmark"><i>◆</i> ✦ <i>◆</i></span><h2 class="section-title">Нови <span class="accent">предложения</span></h2></div></div><a href="{% url 'catalog:shop' %}?sort=new" class="text-link">Всички нови →</a></div>
+    <div class="products">{% for p in new_arrivals %}{% include "catalog/_card.html" %}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section tight">
+  <div class="shell">
+    <div class="benefits">
+      <div class="benefit"><div class="ico">🌿</div><strong>Качествени материи</strong><span>Подбрани меки тъкани</span></div>
+      <div class="benefit"><div class="ico">🚚</div><strong>Бърза доставка</strong><span>До всяка точка в България</span></div>
+      <div class="benefit"><div class="ico">📦</div><strong>Лесно връщане</strong><span>До 14 дни</span></div>
+      <div class="benefit"><div class="ico">🛡️</div><strong>Сигурно пазаруване</strong><span>Защитени лични данни</span></div>
+    </div>
+  </div>
+</section>
+
+{% if testimonials %}
+<section class="section">
+  <div class="shell">
+    <div class="section-head"><div><div class="folkline"><span class="folkmark"><i>◆</i> ✦ <i>◆</i></span><h2 class="section-title">Какво казват нашите <span class="accent">клиенти</span></h2></div></div></div>
+    <div class="testimonials">
+      {% for r in testimonials %}<div class="quote"><div class="stars">{{ r.rating|stars }}</div><p>„{{ r.body }}“</p><strong>{{ r.name }}</strong> <a class="small muted" href="{{ r.product.get_absolute_url }}">· {{ r.product.name }}</a></div>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

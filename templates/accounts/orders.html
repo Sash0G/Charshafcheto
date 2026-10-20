@@ -1,0 +1,7 @@
+{% extends "accounts/_layout.html" %}
+{% block panel %}
+<div class="panel"><h2>Моите поръчки</h2>
+  {% if orders %}{% include "accounts/_orders_table.html" %}{% else %}<div class="empty">Все още нямате поръчки.</div>{% endif %}
+  <p class="small muted">Поръчали сте като гост? След като потвърдите имейла си, поръчките с него ще се появят тук.</p>
+</div>
+{% endblock %}

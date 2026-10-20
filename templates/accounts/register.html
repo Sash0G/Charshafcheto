@@ -1,0 +1,22 @@
+{% extends "accounts/_auth_base.html" %}
+{% block title %}Регистрация — {{ store.store_name }}{% endblock %}
+{% block crumb %}Регистрация{% endblock %}{% block heading %}Създайте профил{% endblock %}
+{% block sub %}<p class="section-sub">Следете поръчките си, запазвайте адреси и любими продукти.</p>{% endblock %}
+{% block box %}
+<form method="post" class="panel">{% csrf_token %}
+  {% include "accounts/_form_errors.html" %}
+  <div class="form-grid">
+    {% include "_field.html" with field=form.first_name %}
+    {% include "_field.html" with field=form.last_name %}
+    {% include "_field.html" with field=form.email class="full" %}
+    {% include "_field.html" with field=form.phone class="full" %}
+    {% include "_field.html" with field=form.password1 %}
+    {% include "_field.html" with field=form.password2 %}
+    {% include "_field.html" with field=form.marketing_consent class="full" %}
+    {% include "_field.html" with field=form.accept_terms class="full" %}
+    <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="field full"><button class="btn btn-primary btn-block">Регистрация</button></div>
+  </div>
+</form>
+<p class="center">Вече имате профил? <a class="text-link" href="{% url 'accounts:login' %}">Вход</a></p>
+{% endblock %}

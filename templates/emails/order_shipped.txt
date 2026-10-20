@@ -1,0 +1,8 @@
+Здравейте, {{ order.full_name }}!
+
+Поръчка {{ order.number }} е изпратена с {{ order.carrier|default:"куриер" }}.
+{% if order.tracking_number %}Товарителница: {{ order.tracking_number }}
+{% endif %}{% if order.tracking_url %}Проследяване: {{ order.tracking_url }}
+{% endif %}{% if order.payment_method == 'cod' %}Сума за плащане на куриера: {{ order.total|floatformat:2 }} {{ order.currency }}
+{% endif %}
+{{ store.store_name }} · {{ store.contact_phone }}

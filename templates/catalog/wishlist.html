@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Любими — {{ store.store_name }}{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / Любими</nav><h1>Любими продукти</h1>
+{% if not user.is_authenticated and products %}<p class="section-sub"><a class="text-link" href="{% url 'accounts:login' %}?next={{ request.path }}">Влезте</a>, за да запазите любимите си продукти в профила.</p>{% endif %}</div></section>
+<section class="section"><div class="shell">
+  {% if products %}<div class="products">{% for p in products %}{% include "catalog/_card.html" with remove_on_unwish=True %}{% endfor %}</div>
+  {% else %}<div class="empty panel">Все още нямате любими продукти.<br><br><a class="btn btn-primary" href="{% url 'catalog:shop' %}">Разгледай магазина</a></div>{% endif %}
+</div></section>
+{% endblock %}

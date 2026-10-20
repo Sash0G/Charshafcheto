@@ -1,0 +1,65 @@
+{% load static dashboard_tags %}<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0e4b37">
+  <title>{% block title %}Админ панел{% endblock %} · {{ store.store_name|default:"Чаршафчето" }}</title>
+  <link rel="icon" href="{% static 'img/logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/store.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="d-body">
+{% dashboard_counts as counts %}
+<header class="d-top">
+  <div class="d-top-in">
+    <a class="d-brand" href="{% url 'dashboard:home' %}"><img src="{% static 'img/logo.png' %}" alt="{{ store.store_name }}"><span>Админ панел</span></a>
+    <div class="d-top-spacer"></div>
+    <a class="d-link" href="/" target="_blank" rel="noopener">Към магазина ↗</a>
+    <div class="d-user"><b>{{ request.user.get_full_name|default:request.user.email }}</b>{% if request.user.is_superuser %}Администратор{% else %}Служител{% endif %}</div>
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="d-link" type="submit">Изход</button></form>
+  </div>
+</header>
+<div class="d-shell">
+  <nav class="d-side" aria-label="Админ навигация">
+    <h6>Продажби</h6>
+    <a href="{% url 'dashboard:home' %}" class="{% nav_active 'home' %}">Табло</a>
+    <a href="{% url 'dashboard:orders' %}" class="{% nav_active 'orders' 'order' 'supplier_order' %}">Поръчки {% if counts.orders %}<span class="d-count">{{ counts.orders }}</span>{% endif %}</a>
+    <a href="{% url 'dashboard:customers' %}" class="{% nav_active 'customers' 'customer' 'guest' %}">Клиенти</a>
+    <a href="{% url 'dashboard:coupons' %}" class="{% nav_active 'coupons' %}">Промо кодове</a>
+    <h6>Каталог</h6>
+    <a href="{% url 'dashboard:products' %}" class="{% nav_active 'products' 'product' 'variant' %}">Продукти</a>
+    <a href="{% url 'dashboard:categories' %}" class="{% nav_active 'categories' %}">Категории</a>
+    <a href="{% url 'dashboard:suppliers' %}" class="{% nav_active 'suppliers' 'supplier' %}">Доставчици</a>
+    <a href="{% url 'dashboard:reviews' %}" class="{% nav_active 'reviews' 'review' %}">Отзиви {% if counts.reviews %}<span class="d-count">{{ counts.reviews }}</span>{% endif %}</a>
+    <h6>Магазин</h6>
+    <a href="{% url 'dashboard:shipping' %}" class="{% nav_active 'shipping' %}">Доставка</a>
+    <a href="{% url 'dashboard:pages' %}" class="{% nav_active 'pages' %}">Страници</a>
+    <a href="{% url 'dashboard:messages' %}" class="{% nav_active 'messages' 'message' %}">Съобщения {% if counts.messages %}<span class="d-count">{{ counts.messages }}</span>{% endif %}</a>
+    <a href="{% url 'dashboard:subscribers' %}" class="{% nav_active 'subscribers' 'subscriber' %}">Абонати</a>
+    <h6>Система</h6>
+    {% if request.user.is_superuser %}
+    <a href="{% url 'dashboard:settings' %}" class="{% nav_active 'settings' %}">Настройки</a>
+    <a href="{% url 'dashboard:team' %}" class="{% nav_active 'team' %}">Екип</a>
+    {% endif %}
+    <a href="{% url 'dashboard:audit' %}" class="{% nav_active 'audit' %}">Журнал</a>
+    {% if request.user.is_superuser %}<a href="{% url 'admin:index' %}">Django админ</a>{% endif %}
+  </nav>
+  <main class="d-main" id="main">
+    {% if messages %}<div class="d-messages" role="status">{% for m in messages %}<div class="d-msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<dialog class="d-dialog" id="confirmDialog">
+  <div class="in">
+    <h3>Потвърждение</h3>
+    <p id="confirmText">Сигурни ли сте?</p>
+    <div class="row"><button type="button" class="btn btn-secondary btn-small" id="confirmNo">Отказ</button><button type="button" class="btn btn-danger btn-small" id="confirmYes">Потвърди</button></div>
+  </div>
+</dialog>
+<script src="{% static 'js/dashboard.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

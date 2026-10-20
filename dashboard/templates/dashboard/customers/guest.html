@@ -1,0 +1,7 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}{{ latest.full_name }}{% endblock %}
+{% block content %}
+<div class="d-head"><div><div class="crumb"><a href="{% url 'dashboard:customers' %}?tab=guests">← Гости</a></div><h1>{{ latest.full_name }} <span class="status pending" style="vertical-align:middle">гост</span></h1><p class="d-sub">{{ email }} · {{ latest.phone }} · похарчено {{ spent|money }}</p></div></div>
+<section class="d-card"><h2>Поръчки</h2>{% include "dashboard/customers/_orders.html" %}</section>
+{% endblock %}

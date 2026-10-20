@@ -1,0 +1,10 @@
+<div class="d-head">
+  <div><h1>{{ e.title }}</h1>{% if sub %}<p class="d-sub">{{ sub }}</p>{% endif %}</div>
+  <div class="d-head-actions"><a class="btn btn-primary btn-small" href="{% url 'dashboard:'|add:e.key|add:'_create' %}">+ Добави {{ e.singular }}</a></div>
+</div>
+<form class="d-filters" method="get">
+  <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Търсене…" aria-label="Търсене">
+  {% if e.filters.active %}<select name="active" data-autosubmit aria-label="Статус"><option value="">Всички</option><option value="1" {% if request.GET.active == '1' %}selected{% endif %}>Активни</option><option value="0" {% if request.GET.active == '0' %}selected{% endif %}>Неактивни</option></select>{% endif %}
+  <button class="d-btn solid" type="submit">Търси</button>
+  {% if request.GET %}<a class="d-btn" href="?">Изчисти</a>{% endif %}
+</form>

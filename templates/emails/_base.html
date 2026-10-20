@@ -1,0 +1,8 @@
+{% load store_tags %}<!doctype html><html lang="bg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;background:#fbf7ef;font-family:Arial,Helvetica,sans-serif;color:#171717">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf7ef;padding:24px 12px"><tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:1px solid #e8dfd2;border-radius:16px;overflow:hidden">
+<tr><td style="background:#0f4f3a;color:#fff;padding:18px 24px;font-size:20px;font-weight:bold">{{ store.store_name }}</td></tr>
+<tr><td style="padding:24px;font-size:15px;line-height:1.55">{% block body %}{% endblock %}</td></tr>
+<tr><td style="padding:16px 24px;border-top:1px solid #e8dfd2;color:#6d6a64;font-size:12px">{{ store.store_name }} · {{ store.contact_phone }} · <a href="mailto:{{ store.contact_email }}" style="color:#c82727">{{ store.contact_email }}</a><br>{{ store.company_name }}{% if store.company_eik %}, ЕИК {{ store.company_eik }}{% endif %}</td></tr>
+</table></td></tr></table></body></html>

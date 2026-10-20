@@ -1,0 +1,25 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Екип{% endblock %}
+{% block content %}
+<div class="d-head"><div><h1>Екип</h1><p class="d-sub">Служителите имат достъп до админ панела. Пълните права дават достъп и до настройките и екипа.</p></div></div>
+<div class="d-grid two">
+  <section class="d-card"><h2>Членове на екипа</h2>
+    <div class="table-wrap"><table class="table d-table" style="min-width:520px"><thead><tr><th>Служител</th><th>Права</th><th>Последно влизане</th><th></th></tr></thead><tbody>
+    {% for u in staff %}<tr>
+      <td><b>{{ u.get_full_name|default:u.email }}</b><div class="d-muted">{{ u.email }}</div></td>
+      <td>{% if u.is_superuser %}<span class="status shipped">Администратор</span>{% else %}<span class="status processing">Служител</span>{% endif %}</td>
+      <td>{{ u.last_login|date:'d.m.Y H:i'|default:"никога" }}</td>
+      <td>{% if u != request.user %}<div class="d-actions">
+        <form method="post" action="{% url 'dashboard:team_toggle' u.pk %}">{% csrf_token %}<button class="d-btn" name="action" value="superuser">{% if u.is_superuser %}Отнеми пълни права{% else %}Дай пълни права{% endif %}</button></form>
+        <form method="post" action="{% url 'dashboard:team_toggle' u.pk %}" data-confirm="Да премахна ли достъпа на {{ u.email }} до админ панела?">{% csrf_token %}<button class="d-btn danger" name="action" value="remove">Премахни</button></form>
+      </div>{% else %}<span class="d-muted">това сте вие</span>{% endif %}</td>
+    </tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <form method="post" class="d-card d-form" novalidate>{% csrf_token %}
+    <h2>Нов служител</h2>
+    <div class="form-grid" style="grid-template-columns:1fr">{% for field in form %}{% include "dashboard/_field.html" %}{% endfor %}</div>
+    <div class="d-form-actions"><div class="left"><button class="btn btn-primary" type="submit">Добави</button></div></div>
+  </form>
+</div>
+{% endblock %}

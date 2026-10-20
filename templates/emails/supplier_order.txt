@@ -1,0 +1,10 @@
+Поръчка за изпълнение {{ order.number }}
+
+{% for i in items %}{{ i.quantity }} × {{ i.product_name }} — {{ i.variant_name }} (код: {{ i.supplier_sku|default:i.sku }})
+{% endfor %}
+Получател: {{ order.full_name }}, тел. {{ order.phone }}
+Доставка: {{ order.shipping_method_name }} — {{ order.city }} {{ order.postcode }}, {{ order.address }}
+{% if order.payment_method == 'cod' and order.payment_status != 'paid' %}Наложен платеж: {{ order.total|floatformat:2 }} {{ order.currency }}{% else %}Платено — без наложен платеж{% endif %}
+
+Моля, отговорете с номера на товарителницата.
+{{ store.store_name }}

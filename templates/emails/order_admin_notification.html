@@ -1,0 +1,7 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Нова поръчка {{ order.number }}</h2>
+<p><b>{{ order.full_name }}</b> · {{ order.phone }} · {{ order.email }}<br>{{ order.shipping_method_name }}: {{ order.city }}, {{ order.address }}<br>Плащане: {{ order.get_payment_method_display }} ({{ order.get_payment_status_display }})</p>
+{% if order.customer_note %}<p style="background:#fff2d1;padding:10px;border-radius:8px">Бележка: {{ order.customer_note }}</p>{% endif %}
+{% include "emails/_items.html" %}
+{% url 'dashboard:order_detail' order.pk as path %}{% with url=site_url|add:path label="Отвори в админ панела" %}{% include "emails/_button.html" %}{% endwith %}
+{% endblock %}

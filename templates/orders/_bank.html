@@ -1,0 +1,3 @@
+{% load store_tags %}{% if order.payment_method == 'bank' and order.payment_status != 'paid' %}
+<div class="alert info"><b>Данни за банков превод</b><br>Получател: {{ store.company_name|default:store.store_name }}<br>IBAN: <b>{{ store.bank_iban }}</b>{% if store.bank_name %} ({{ store.bank_name }}){% endif %}<br>Сума: <b>{{ order.total|money }}</b><br>Основание: <b>{{ order.number }}</b><br>Поръчката се изпраща след получаване на плащането.</div>
+{% endif %}

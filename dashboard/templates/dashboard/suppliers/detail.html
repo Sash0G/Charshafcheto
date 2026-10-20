@@ -1,0 +1,28 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}{{ supplier.name }}{% endblock %}
+{% block content %}
+<div class="d-head">
+  <div><div class="crumb"><a href="{% url 'dashboard:suppliers' %}">← Доставчици</a></div><h1>{{ supplier.name }}</h1><p class="d-sub">{{ n_products }} продукта · срок за обработка {{ supplier.processing_days }} дни{% if supplier.auto_forward %} · автоматично препращане{% endif %}</p></div>
+  <div class="d-head-actions"><a class="btn btn-secondary btn-small" href="{% url 'dashboard:suppliers_edit' supplier.pk %}">Редактирай</a></div>
+</div>
+<div class="d-grid two">
+  <section class="d-card"><h2>Поръчки към доставчика</h2>
+    <div class="table-wrap"><table class="table d-table"><thead><tr><th>Поръчка</th><th>Дата</th><th>Статус</th><th>Номер при доставчика</th><th>Товарителница</th><th class="num">Сума</th></tr></thead><tbody>
+      {% for so in page %}<tr><td><a class="d-strong" href="{% url 'dashboard:order_detail' so.order_id %}">{{ so.order.number }}</a></td><td>{{ so.created_at|date:'d.m.Y' }}</td><td><span class="status {{ so.status|status_class }}">{{ so.get_status_display }}</span></td><td>{{ so.supplier_reference|default:"—" }}</td><td>{{ so.tracking_number|default:"—" }}</td><td class="num">{{ so.cost_total|money }}</td></tr>
+      {% empty %}<tr><td colspan="6" class="d-empty">Все още няма поръчки към този доставчик.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% include "dashboard/_pager.html" %}
+  </section>
+  <div class="d-stack">
+    <section class="d-card"><h2>Контакт</h2><dl class="d-kv">
+      <dt>Лице</dt><dd>{{ supplier.contact_person|default:"—" }}</dd><dt>Имейл</dt><dd>{% if supplier.email %}<a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>{% else %}—{% endif %}</dd>
+      <dt>Телефон</dt><dd>{{ supplier.phone|default:"—" }}</dd><dt>Сайт</dt><dd>{% if supplier.website %}<a href="{{ supplier.website }}" target="_blank" rel="noopener">{{ supplier.website }}</a>{% else %}—{% endif %}</dd></dl>
+      {% if supplier.notes %}<div class="d-note" style="margin-top:12px">{{ supplier.notes }}</div>{% endif %}
+    </section>
+    <section class="d-card"><h2>Продукти <a class="d-btn" href="{% url 'dashboard:products' %}?supplier={{ supplier.pk }}">Всички →</a></h2>
+      <table class="table" style="min-width:0"><tbody>{% for p in products|slice:":10" %}<tr><td><a class="d-strong" href="{% url 'dashboard:product_edit' p.pk %}">{{ p.name }}</a><div class="d-muted">{{ p.category.name }}</div></td><td class="num" style="text-align:right">{{ p.price|money }}</td></tr>{% empty %}<tr><td class="d-empty">Няма продукти.</td></tr>{% endfor %}</tbody></table>
+    </section>
+  </div>
+</div>
+{% endblock %}

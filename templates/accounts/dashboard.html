@@ -1,0 +1,13 @@
+{% extends "accounts/_layout.html" %}{% load store_tags %}
+{% block panel %}
+<div class="account-cards">
+  <div class="kpi"><small>Поръчки</small><b>{{ orders_count }}</b><em>{{ open_count }} в процес</em></div>
+  <div class="kpi"><small>Любими</small><b>{{ wishlist_count }}</b><em><a href="{% url 'catalog:wishlist' %}">Виж любими →</a></em></div>
+  <div class="kpi"><small>Основен адрес</small><b style="font-size:16px">{% if default_address %}{{ default_address.city }}{% else %}—{% endif %}</b><em><a href="{% url 'accounts:addresses' %}">Управлявай →</a></em></div>
+</div>
+<div class="panel">
+  <div class="admin-top"><h2>Последни поръчки</h2>{% if orders_count > 3 %}<a class="btn btn-secondary btn-small" href="{% url 'accounts:orders' %}">Всички поръчки</a>{% endif %}</div>
+  {% if recent_orders %}{% include "accounts/_orders_table.html" with orders=recent_orders %}
+  {% else %}<div class="empty">Все още нямате поръчки.<br><br><a class="btn btn-primary" href="{% url 'catalog:shop' %}">Започнете пазаруването</a></div>{% endif %}
+</div>
+{% endblock %}

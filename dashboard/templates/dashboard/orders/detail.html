@@ -1,0 +1,157 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags %}
+{% block title %}Поръчка {{ order.number }}{% endblock %}
+{% block content %}
+<div class="d-head">
+  <div>
+    <div class="crumb"><a href="{% url 'dashboard:orders' %}">← Поръчки</a></div>
+    <h1>{{ order.number }} <span class="status {{ order.status|status_class }}" style="vertical-align:middle">{{ order.get_status_display }}</span> <span class="status {{ order.payment_status|status_class }}" style="vertical-align:middle">{{ order.get_payment_status_display }}</span></h1>
+    <p class="d-sub">Създадена {{ order.created_at|date:'d.m.Y в H:i' }} · {{ order.item_count }} бр. · {{ order.get_payment_method_display }}</p>
+  </div>
+  <div class="d-head-actions">
+    <a class="btn btn-secondary btn-small" href="{% url 'dashboard:order_print' order.pk %}" target="_blank">🖨 Фактура / проформа</a>
+    <a class="btn btn-secondary btn-small" href="{% url 'dashboard:order_print' order.pk %}?doc=slip" target="_blank">📦 Разписка за опаковане</a>
+  </div>
+</div>
+
+<div class="d-grid two">
+  <div class="d-stack">
+    <section class="d-card">
+      <h2>Продукти</h2>
+      <div class="table-wrap"><table class="table d-table" style="min-width:560px">
+        <thead><tr><th></th><th>Продукт</th><th>Доставчик</th><th class="num">Ед. цена</th><th class="num">Доставна</th><th class="num">Бр.</th><th class="num">Сума</th></tr></thead>
+        <tbody>{% for item in order.items.all %}<tr>
+          <td>{% with img=item.product.main_image %}{% if img %}<img class="d-thumb" src="{{ img.image.url }}" alt="">{% endif %}{% endwith %}</td>
+          <td>{% if item.product %}<a class="d-strong" href="{% url 'dashboard:product_edit' item.product_id %}">{{ item.product_name }}</a>{% else %}<b>{{ item.product_name }}</b>{% endif %}<div class="d-muted">{{ item.variant_name }}{% if item.sku %} · {{ item.sku }}{% endif %}</div></td>
+          <td>{% if item.supplier %}{{ item.supplier.name }}{% if item.supplier_sku %}<div class="d-muted">{{ item.supplier_sku }}</div>{% endif %}{% else %}<span class="d-muted">—</span>{% endif %}</td>
+          <td class="num">{{ item.unit_price|money }}</td>
+          <td class="num d-muted">{{ item.unit_cost|money }}</td>
+          <td class="num">{{ item.quantity }}</td>
+          <td class="num"><b>{{ item.line_total|money }}</b></td>
+        </tr>{% endfor %}</tbody>
+      </table></div>
+      <table class="d-totals">
+        <tr><td>Междинна сума</td><td>{{ order.subtotal|money }}</td></tr>
+        {% if order.discount_total %}<tr><td>Отстъпка{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</td><td>−{{ order.discount_total|money }}</td></tr>{% endif %}
+        <tr><td>Доставка ({{ order.shipping_method_name }})</td><td>{% if order.shipping_total %}{{ order.shipping_total|money }}{% else %}Безплатна{% endif %}</td></tr>
+        <tr class="grand"><td>Общо</td><td>{{ order.total|money }}</td></tr>
+        <tr><td class="d-muted">Доставна стойност към доставчици</td><td class="d-muted">{{ order.cost_total|money }}</td></tr>
+        <tr class="profit"><td>Брутна печалба</td><td>{{ order.profit|money }}</td></tr>
+      </table>
+    </section>
+
+    <section class="d-card">
+      <h2>Дропшипинг — доставчици <small>{{ supplier_orders|length }} поръчки към доставчици</small></h2>
+      {% if not has_supplier_items %}
+        <p class="d-muted" style="margin:0">Продуктите в тази поръчка нямат зададен доставчик — изпълнява се от вашия склад.</p>
+      {% else %}
+        {% if unassigned_items %}<div class="d-msg warning" style="margin-bottom:12px">{{ unassigned_items|length }} артикул(а) нямат доставчик и трябва да се изпратят от вас.</div>{% endif %}
+        <div class="d-stack" style="gap:12px">
+        {% for so, form in supplier_orders %}
+          <div class="d-supplier-box">
+            <header><div><b>{{ so.supplier.name }}</b> <span class="status {{ so.status|status_class }}">{{ so.get_status_display }}</span><div class="d-muted">{{ so.supplier.email|default:"няма имейл" }}{% if so.sent_at %} · изпратена {{ so.sent_at|date:'d.m.Y H:i' }}{% endif %}</div></div><b>{{ so.cost_total|money }}</b></header>
+            <div class="d-muted">{% for i in so.items.all %}{{ i.quantity }} × {{ i.product_name }} ({{ i.variant_name }}{% if i.supplier_sku %}, {{ i.supplier_sku }}{% endif %}){% if not forloop.last %} · {% endif %}{% endfor %}</div>
+            <form method="post" action="{% url 'dashboard:supplier_order_update' order.pk so.pk %}" class="d-form">{% csrf_token %}
+              <div class="form-grid">
+                {% include "dashboard/_field.html" with field=form.status %}
+                {% include "dashboard/_field.html" with field=form.supplier_reference %}
+                {% include "dashboard/_field.html" with field=form.tracking_number %}
+                {% include "dashboard/_field.html" with field=form.notes full=True %}
+              </div>
+              <div style="margin-top:10px"><button class="d-btn solid" type="submit">Запази</button></div>
+            </form>
+          </div>
+        {% endfor %}
+        </div>
+        {% if order.status != 'cancelled' and order.status != 'returned' %}
+        <div class="d-actions" style="justify-content:flex-start;margin-top:12px">
+          {% if not supplier_orders %}<form method="post" action="{% url 'dashboard:order_forward' order.pk %}">{% csrf_token %}<input type="hidden" name="action" value="build"><button class="d-btn" type="submit">Подготви поръчките към доставчици</button></form>{% endif %}
+          <form method="post" action="{% url 'dashboard:order_forward' order.pk %}" data-confirm="Да изпратя ли имейл с поръчката до всеки доставчик?">{% csrf_token %}<button class="btn btn-primary btn-small" type="submit">✉ Препрати към доставчиците</button></form>
+        </div>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <section class="d-card">
+      <h2>История</h2>
+      <form method="post" action="{% url 'dashboard:order_note' order.pk %}" class="d-form" style="margin-bottom:16px">{% csrf_token %}
+        <div class="form-grid">{% include "dashboard/_field.html" with field=note_form.message full=True %}</div>
+        <div style="margin-top:8px"><button class="d-btn solid" type="submit">Добави бележка</button></div>
+      </form>
+      <ul class="d-timeline">
+        {% for ev in order.events.all %}<li class="ev-{{ ev.kind }}"><div>{{ ev.message }}<div class="meta">{{ ev.created_at|date:'d.m.Y H:i' }}{% if ev.user %} · {{ ev.user }}{% endif %}{% if ev.is_public %} · видимо за клиента{% endif %}</div></div></li>{% empty %}<li><div class="d-muted">Няма събития.</div></li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  <div class="d-stack">
+    <section class="d-card">
+      <h2>Статус</h2>
+      <form method="post" action="{% url 'dashboard:order_status' order.pk %}" class="d-form">{% csrf_token %}
+        <div class="form-grid" style="grid-template-columns:1fr">
+          {% include "dashboard/_field.html" with field=status_form.status %}
+          {% include "dashboard/_field.html" with field=status_form.note %}
+          {% include "dashboard/_field.html" with field=status_form.notify %}
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-primary btn-small" type="submit">Промени статуса</button></div>
+      </form>
+    </section>
+
+    <section class="d-card">
+      <h2>Плащане</h2>
+      <dl class="d-kv"><dt>Метод</dt><dd>{{ order.get_payment_method_display }}</dd><dt>Статус</dt><dd><span class="status {{ order.payment_status|status_class }}">{{ order.get_payment_status_display }}</span></dd>
+        {% if order.paid_at %}<dt>Платена на</dt><dd>{{ order.paid_at|date:'d.m.Y H:i' }}</dd>{% endif %}
+        {% if order.stripe_payment_intent %}<dt>Stripe</dt><dd class="d-muted">{{ order.stripe_payment_intent }}</dd>{% endif %}</dl>
+      <div class="d-actions" style="justify-content:flex-start;margin-top:12px">
+        {% if order.payment_status != 'paid' and order.payment_status != 'refunded' %}<form method="post" action="{% url 'dashboard:order_payment' order.pk %}">{% csrf_token %}<input type="hidden" name="action" value="paid"><button class="d-btn green" type="submit">✓ Маркирай като платена</button></form>{% endif %}
+        {% if order.payment_status == 'paid' %}<form method="post" action="{% url 'dashboard:order_payment' order.pk %}" data-confirm="Маркирай плащането като възстановено? (Самото възстановяване на сумата се прави в Stripe/банката.)">{% csrf_token %}<input type="hidden" name="action" value="refunded"><button class="d-btn danger" type="submit">↺ Възстановена сума</button></form>{% endif %}
+      </div>
+    </section>
+
+    <section class="d-card">
+      <h2>Пратка</h2>
+      <form method="post" action="{% url 'dashboard:order_tracking' order.pk %}" class="d-form">{% csrf_token %}
+        <div class="form-grid" style="grid-template-columns:1fr">
+          {% include "dashboard/_field.html" with field=tracking_form.carrier %}
+          {% include "dashboard/_field.html" with field=tracking_form.tracking_number %}
+          {% if order.status in open_statuses %}{% include "dashboard/_field.html" with field=tracking_form.mark_shipped %}{% endif %}
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="d-btn solid" type="submit">Запази</button>{% if order.tracking_url %}<a class="d-btn" href="{{ order.tracking_url }}" target="_blank" rel="noopener">Проследи ↗</a>{% endif %}</div>
+      </form>
+    </section>
+
+    <section class="d-card">
+      <h2>Клиент</h2>
+      <dl class="d-kv">
+        <dt>Име</dt><dd>{% if order.user %}<a href="{% url 'dashboard:customer_detail' order.user_id %}">{{ order.full_name }}</a>{% else %}<a href="{% url 'dashboard:guest_detail' %}?email={{ order.email|urlencode }}">{{ order.full_name }}</a> <span class="d-muted">(гост)</span>{% endif %}</dd>
+        <dt>Имейл</dt><dd><a href="mailto:{{ order.email }}">{{ order.email }}</a></dd>
+        <dt>Телефон</dt><dd><a href="tel:{{ order.phone }}">{{ order.phone }}</a></dd>
+      </dl>
+    </section>
+
+    <section class="d-card">
+      <h2>Доставка</h2>
+      <dl class="d-kv">
+        <dt>Метод</dt><dd>{{ order.shipping_method_name }}</dd>
+        <dt>{% if order.delivery_type == 'office' %}Офис{% else %}Адрес{% endif %}</dt><dd>{{ order.address }}</dd>
+        <dt>Град</dt><dd>{{ order.city }}{% if order.postcode %}, {{ order.postcode }}{% endif %}</dd>
+        {% if order.shipped_at %}<dt>Изпратена</dt><dd>{{ order.shipped_at|date:'d.m.Y H:i' }}</dd>{% endif %}
+        {% if order.delivered_at %}<dt>Доставена</dt><dd>{{ order.delivered_at|date:'d.m.Y H:i' }}</dd>{% endif %}
+      </dl>
+      {% if order.customer_note %}<p class="d-muted" style="margin:14px 0 6px">Бележка от клиента:</p><div class="d-note">{{ order.customer_note }}</div>{% endif %}
+    </section>
+
+    {% if order.needs_invoice %}
+    <section class="d-card">
+      <h2>Данни за фактура</h2>
+      <dl class="d-kv"><dt>Фирма</dt><dd>{{ order.company_name }}</dd><dt>ЕИК</dt><dd>{{ order.company_eik }}</dd>{% if order.company_vat %}<dt>ДДС №</dt><dd>{{ order.company_vat }}</dd>{% endif %}<dt>МОЛ</dt><dd>{{ order.company_mol }}</dd><dt>Адрес</dt><dd>{{ order.company_address }}</dd></dl>
+    </section>
+    {% endif %}
+
+    <section class="d-card">
+      <h2>Техническа информация</h2>
+      <dl class="d-kv"><dt>IP адрес</dt><dd>{{ order.ip_address|default:"—" }}</dd><dt>Приети условия</dt><dd>{{ order.accepted_terms_at|date:'d.m.Y H:i'|default:"—" }}</dd><dt>Последна промяна</dt><dd>{{ order.updated_at|date:'d.m.Y H:i' }}</dd></dl>
+    </section>
+  </div>
+</div>
+{% endblock %}

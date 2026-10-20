@@ -1,0 +1,49 @@
+{% extends "base.html" %}{% load store_tags %}
+{% block title %}Количка — {{ store.store_name }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / Количка</nav><h1>Количка</h1></div></section>
+<section class="section">
+  <div class="shell">
+  {% if cart.is_empty %}
+    <div class="empty panel">Количката е празна.<br><br><a class="btn btn-primary" href="{% url 'catalog:shop' %}">Към магазина</a></div>
+  {% else %}
+    <div class="cart-layout">
+      <div class="panel cart-table">
+        {% for line, available in stock_problems %}<div class="alert error">„{{ line.product.name }} — {{ line.variant.name }}“: {% if available %}налични са само {{ available }} бр.{% else %}вече не е наличен.{% endif %}</div>{% endfor %}
+        {% for line in cart %}
+        <div class="cart-item">
+          <a href="{{ line.product.get_absolute_url }}">{% with img=line.product.main_image %}{% if img %}<img src="{{ img.image.url }}" alt="">{% endif %}{% endwith %}</a>
+          <div>
+            <a href="{{ line.product.get_absolute_url }}"><b>{{ line.product.name }}</b></a>
+            <div class="muted small" style="margin-top:3px">{{ line.variant.name }} · {{ line.unit_price|money }}</div>
+            <form method="post" action="{% url 'cart:update' line.variant.pk %}" class="form-actions" style="margin-top:10px">{% csrf_token %}
+              <div class="qty-input"><button type="button" data-step="-1" aria-label="По-малко">−</button><input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="{{ line.variant.max_quantity }}" aria-label="Количество" data-autosubmit><button type="button" data-step="1" aria-label="Повече">+</button></div>
+              <noscript><button class="btn btn-ghost btn-small">Обнови</button></noscript>
+            </form>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:900;font-size:17px">{{ line.line_total|money }}</div>
+            <form method="post" action="{% url 'cart:remove' line.variant.pk %}">{% csrf_token %}<button class="text-link" style="border:0;background:none;margin-top:10px">Премахни</button></form>
+          </div>
+        </div>
+        {% endfor %}
+        <div style="margin-top:16px"><a class="text-link" href="{% url 'catalog:shop' %}">← Продължи пазаруването</a></div>
+      </div>
+      <aside class="summary">
+        <h3>Обобщение</h3>
+        {% include "cart/_free_ship.html" %}
+        <div class="sum-row"><span>Междинна сума</span><span>{{ totals.subtotal|money }}</span></div>
+        {% if totals.coupon %}<div class="sum-row discount"><span>Отстъпка ({{ totals.coupon.code }})</span><span>−{{ totals.discount|money }}</span></div>{% endif %}
+        <div class="sum-row"><span>Доставка</span><span>{% if shipping_estimate %}{% if totals.shipping %}от {{ totals.shipping|money }}{% else %}Безплатна{% endif %}{% else %}—{% endif %}</span></div>
+        <div class="sum-row total"><span>Общо</span><span>{{ totals.total|money }}</span></div>
+        {% if totals.total|money_alt %}<div class="sum-row" style="padding-top:0"><span></span><span class="price-alt">{{ totals.total|money_alt }}</span></div>{% endif %}
+        {% include "cart/_coupon.html" %}
+        <a class="btn btn-primary btn-block {% if stock_problems %}disabled{% endif %}" href="{% url 'orders:checkout' %}">Към поръчка →</a>
+        <div class="secure-note"><svg class="i" style="width:15px;height:15px"><use href="#i-lock"/></svg> Сигурно плащане и защита на данните</div>
+      </aside>
+    </div>
+  {% endif %}
+  </div>
+</section>
+{% endblock %}

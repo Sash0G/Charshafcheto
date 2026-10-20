@@ -1,0 +1,8 @@
+{% if totals.coupon %}
+<form method="post" action="{% url 'cart:coupon' %}" class="coupon-form">{% csrf_token %}<input type="hidden" name="remove" value="1"><input type="hidden" name="next" value="{{ coupon_next }}">
+  <span style="flex:1" class="small">Код <b>{{ totals.coupon.code }}</b> ({{ totals.coupon.label }})</span><button class="btn btn-ghost btn-small">Премахни</button></form>
+{% else %}
+{% if totals.coupon_error %}<p class="small" style="color:var(--red)">{{ totals.coupon_error }}</p>{% endif %}
+<form method="post" action="{% url 'cart:coupon' %}" class="coupon-form">{% csrf_token %}<input type="hidden" name="next" value="{{ coupon_next }}">
+  <label class="sr-only" for="couponCode">Промо код</label><input id="couponCode" name="code" placeholder="Промо код" autocomplete="off"><button class="btn btn-ghost btn-small">Приложи</button></form>
+{% endif %}

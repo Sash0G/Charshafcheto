@@ -1,0 +1,8 @@
+{% extends "emails/_base.html" %}{% block body %}
+<h2 style="margin:0 0 10px">Поръчката ви пътува! 🚚</h2>
+<p>Здравейте, {{ order.full_name }}! Поръчка <b>{{ order.number }}</b> е изпратена с {{ order.carrier|default:"куриер" }}.</p>
+{% if order.tracking_number %}<p>Номер на товарителница: <b>{{ order.tracking_number }}</b></p>{% endif %}
+{% if order.tracking_url %}{% with url=order.tracking_url label="Проследи пратката" %}{% include "emails/_button.html" %}{% endwith %}{% endif %}
+<p>Очаквайте я до 1–3 работни дни на адрес: {{ order.city }}, {{ order.address }}.</p>
+{% if order.payment_method == 'cod' %}<p>Сума за плащане на куриера: <b>{{ order.total|floatformat:2 }} {{ order.currency }}</b></p>{% endif %}
+{% endblock %}

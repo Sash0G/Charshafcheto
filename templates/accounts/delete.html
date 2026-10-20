@@ -1,0 +1,12 @@
+{% extends "accounts/_layout.html" %}
+{% block panel %}
+<div class="panel"><h2>Изтриване на профила</h2>
+  <div class="danger-zone">
+    <p class="mt-0">Профилът, адресите, любимите и абонаментът ви ще бъдат изтрити окончателно. Поръчките се пазят анонимно за счетоводни цели, както изисква законът.</p>
+    <form method="post" class="stack" style="max-width:420px">{% csrf_token %}
+      {% include "_field.html" with field=form.password %}
+      <button class="btn btn-primary">Изтрий профила окончателно</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+Добре дошли, {{ user.first_name|default:user.email }}!
+
+Потвърдете имейла си: {{ url }}
+
+Линкът е валиден 3 дни.
+{{ store.store_name }}

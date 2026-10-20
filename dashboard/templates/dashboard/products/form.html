@@ -1,0 +1,106 @@
+{% extends "dashboard/base.html" %}
+{% load store_tags dashboard_tags %}
+{% block title %}{% if is_new %}Нов продукт{% else %}{{ product.name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="d-head">
+  <div><div class="crumb"><a href="{% url 'dashboard:products' %}">← Продукти</a></div><h1>{% if is_new %}Нов продукт{% else %}{{ product.name }}{% endif %}</h1>
+    {% if not is_new %}<p class="d-sub">Създаден {{ product.created_at|date:'d.m.Y' }} · продадени {{ product.sales_count }} бр. · рейтинг {{ product.rating_avg|floatformat:1 }} ({{ product.rating_count }} отзива)</p>{% endif %}</div>
+  {% if not is_new %}<div class="d-head-actions">
+    <a class="btn btn-secondary btn-small" href="{% storefront_url product %}" target="_blank" rel="noopener">Виж в магазина ↗</a>
+    <form method="post" action="{% url 'dashboard:product_duplicate' product.pk %}">{% csrf_token %}<button class="btn btn-secondary btn-small" type="submit">⧉ Дублирай</button></form>
+  </div>{% endif %}
+</div>
+<form method="post" enctype="multipart/form-data" class="d-form" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  <div class="d-grid two">
+    <div class="d-stack">
+      <section class="d-card"><h2>Основна информация</h2>
+        <div class="form-grid">
+          {% include "dashboard/_field.html" with field=form.name full=True %}
+          {% include "dashboard/_field.html" with field=form.short_description %}
+          {% include "dashboard/_field.html" with field=form.description %}
+          {% include "dashboard/_field.html" with field=form.material %}
+          {% include "dashboard/_field.html" with field=form.pieces %}
+          {% include "dashboard/_field.html" with field=form.color %}
+          {% include "dashboard/_field.html" with field=form.care %}
+        </div>
+      </section>
+
+      <section class="d-card"><h2>Варианти и наличност <small>напр. размери</small></h2>
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}<ul class="errorlist">{% for e in formset.non_form_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        <div class="table-wrap" style="border:0">
+        <table class="d-variants" data-formset="{{ formset.prefix }}">
+          <thead><tr><th>Вариант *</th><th>Арт. №</th><th>Код доставчик</th><th>Цена</th><th>Доставна</th><th>Наличност</th><th>Акт.</th><th>Ред</th><th>Изтрий</th></tr></thead>
+          <tbody>
+          {% for vf in formset %}<tr class="{% if vf.DELETE.value %}deleted{% endif %}">
+            {% for hidden in vf.hidden_fields %}{{ hidden }}{% endfor %}
+            <td>{{ vf.name }}{% for e in vf.name.errors %}<div class="err">{{ e }}</div>{% endfor %}{% for e in vf.non_field_errors %}<div class="err">{{ e }}</div>{% endfor %}</td>
+            <td>{{ vf.sku }}</td><td>{{ vf.supplier_sku }}</td>
+            <td>{{ vf.price_override }}{% for e in vf.price_override.errors %}<div class="err">{{ e }}</div>{% endfor %}</td>
+            <td>{{ vf.cost_override }}</td>
+            <td>{{ vf.stock }}{% for e in vf.stock.errors %}<div class="err">{{ e }}</div>{% endfor %}</td>
+            <td>{{ vf.is_active }}</td><td style="width:70px">{{ vf.position }}</td>
+            <td>{% if vf.instance.pk %}{{ vf.DELETE }}{% endif %}</td>
+          </tr>{% endfor %}
+          </tbody>
+        </table>
+        </div>
+        <template id="variantTemplate">{% with vf=formset.empty_form %}<tr>{% for hidden in vf.hidden_fields %}{{ hidden }}{% endfor %}<td>{{ vf.name }}</td><td>{{ vf.sku }}</td><td>{{ vf.supplier_sku }}</td><td>{{ vf.price_override }}</td><td>{{ vf.cost_override }}</td><td>{{ vf.stock }}</td><td>{{ vf.is_active }}</td><td style="width:70px">{{ vf.position }}</td><td></td></tr>{% endwith %}</template>
+        <p class="d-muted" style="margin:10px 0">Оставете „Цена“ и „Доставна“ празни, за да се ползват цените на продукта.</p>
+        <button type="button" class="d-btn" data-add-row>+ Добави вариант</button>
+      </section>
+
+      <section class="d-card"><h2>Изображения</h2>
+        {% if images %}<div class="d-images">{% for img in images %}<div class="d-image">
+          <img src="{{ img.image.url }}" alt="{{ img.alt }}">
+          <input type="text" name="image_alt_{{ img.pk }}" value="{{ img.alt }}" placeholder="Алтернативен текст" aria-label="Алтернативен текст">
+          <label>Ред <input type="number" min="0" name="image_position_{{ img.pk }}" value="{{ img.position }}" style="width:70px"></label>
+          <label><input type="checkbox" name="delete_image" value="{{ img.pk }}"> Изтрий</label>
+        </div>{% endfor %}</div><p class="d-muted" style="margin-top:0">Първото изображение (най-малък ред) е основно.</p>{% endif %}
+        <div class="form-grid">{% include "dashboard/_field.html" with field=form.new_images full=True %}</div>
+      </section>
+
+      <section class="d-card"><h2>SEO</h2>
+        <div class="form-grid">
+          {% include "dashboard/_field.html" with field=form.slug %}
+          {% include "dashboard/_field.html" with field=form.meta_title %}
+          {% include "dashboard/_field.html" with field=form.meta_description full=True %}
+        </div>
+      </section>
+    </div>
+
+    <div class="d-stack">
+      <section class="d-card"><h2>Видимост</h2>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          {% include "dashboard/_field.html" with field=form.is_active %}
+          {% include "dashboard/_field.html" with field=form.is_featured %}
+          {% include "dashboard/_field.html" with field=form.badge %}
+        </div>
+      </section>
+      <section class="d-card"><h2>Цени</h2>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          {% include "dashboard/_field.html" with field=form.price %}
+          {% include "dashboard/_field.html" with field=form.compare_at_price %}
+          {% include "dashboard/_field.html" with field=form.cost_price %}
+        </div>
+        <div class="d-margin-hint" data-margin-hint style="margin-top:12px">{% if product.margin is not None %}Печалба на брой: {{ product.margin|money }}{% endif %}</div>
+      </section>
+      <section class="d-card"><h2>Организация и доставчик</h2>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          {% include "dashboard/_field.html" with field=form.category %}
+          {% include "dashboard/_field.html" with field=form.sku %}
+          {% include "dashboard/_field.html" with field=form.supplier %}
+          {% include "dashboard/_field.html" with field=form.supplier_url %}
+          {% include "dashboard/_field.html" with field=form.track_inventory %}
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="d-card d-form-actions" style="margin-top:18px;position:sticky;bottom:12px;z-index:5">
+    <div class="left"><button class="btn btn-primary" type="submit">Запази</button><button class="btn btn-secondary" type="submit" name="save_continue" value="1">Запази и продължи</button><a class="btn btn-secondary" href="{% url 'dashboard:products' %}">Отказ</a></div>
+    {% if not is_new %}<a class="d-btn danger" href="{% url 'dashboard:product_delete' product.pk %}">Изтрий продукта</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

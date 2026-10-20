@@ -1,0 +1,31 @@
+{% load store_tags %}{% with v=p.default_variant %}
+<article class="product-card">
+  {% if p.on_sale %}<span class="tag">-{{ p.discount_percent }}%</span>{% elif p.badge %}<span class="tag">{{ p.badge }}</span>{% endif %}
+  {% if not p.in_stock %}<span class="out">Изчерпан</span>{% endif %}
+  <a class="product-img" href="{{ p.get_absolute_url }}" tabindex="-1">
+    {% with img=p.main_image %}{% if img %}<img src="{{ img.image.url }}" alt="{{ img.alt|default:p.name }}" loading="lazy" width="640" height="420">{% endif %}{% endwith %}
+  </a>
+  <div class="product-body">
+    <a class="product-name" href="{{ p.get_absolute_url }}" style="display:block">{{ p.name }}</a>
+    <div class="product-meta">
+      <span class="stars" title="{{ p.rating_avg|floatformat:1 }} от 5">{{ p.rating_avg|stars }} <span style="color:#8f887f">({{ p.rating_count }})</span></span>
+      {% if p.in_stock %}{% if p.track_inventory and p.stock_total <= store.low_stock_threshold %}<span class="stock low">Последни бройки</span>{% else %}<span class="stock">В наличност</span>{% endif %}{% else %}<span class="stock none">Изчерпан</span>{% endif %}
+    </div>
+    <div class="price-row">{% if p.has_options and p.min_price < p.price %}<span class="small muted">от</span> {% price p.min_price %}{% else %}{% price p.price %}{% endif %}{% if p.on_sale %}<span class="old-price">{{ p.compare_at_price|money }}</span>{% endif %}</div>
+    <div class="card-actions">
+      {% if not p.in_stock %}
+        <a class="btn btn-secondary btn-small" href="{{ p.get_absolute_url }}" style="flex:1">Виж продукта</a>
+      {% elif p.has_options %}
+        <a class="btn btn-primary btn-small" href="{{ p.get_absolute_url }}" style="flex:1">Избери размер</a>
+      {% else %}
+        <form method="post" action="{% url 'cart:add' %}" data-ajax="cart-add">{% csrf_token %}
+          <input type="hidden" name="variant" value="{{ v.pk }}"><input type="hidden" name="quantity" value="1">
+          <button class="btn btn-primary btn-small">🛒 Добави</button>
+        </form>
+      {% endif %}
+      <form method="post" action="{% url 'catalog:wishlist_toggle' p.pk %}" data-ajax="wish" {% if remove_on_unwish %}data-remove-card="1"{% endif %}>{% csrf_token %}
+        {% if p.pk in wishlist_ids %}<button class="wish on" data-wish-product="{{ p.pk }}" aria-pressed="true" aria-label="Любими" style="height:100%">♥</button>{% else %}<button class="wish" data-wish-product="{{ p.pk }}" aria-pressed="false" aria-label="Любими" style="height:100%">♡</button>{% endif %}
+      </form>
+    </div>
+  </div>
+</article>{% endwith %}

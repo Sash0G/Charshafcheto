@@ -1,0 +1,10 @@
+Нова поръчка {{ order.number }} — {{ order.total }} {{ order.currency }}
+
+{{ order.full_name }} · {{ order.phone }} · {{ order.email }}
+{{ order.shipping_method_name }}: {{ order.city }}, {{ order.address }}
+Плащане: {{ order.get_payment_method_display }}
+{% if order.customer_note %}Бележка: {{ order.customer_note }}
+{% endif %}
+{% for i in order.items.all %}{{ i.quantity }} × {{ i.product_name }} ({{ i.variant_name }}){% if i.supplier %} — {{ i.supplier.name }}{% endif %}
+{% endfor %}
+{{ site_url }}{% url 'dashboard:order_detail' order.pk %}

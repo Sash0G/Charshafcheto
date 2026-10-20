@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Проследи поръчка — {{ store.store_name }}{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="shell"><nav class="crumb"><a href="{% url 'core:home' %}">Начало</a> / Проследяване</nav><h1>Проследи поръчка</h1><p class="section-sub">Въведете номера на поръчката и имейла, с който е направена.</p></div></section>
+<section class="section"><div class="shell auth-box">
+  <form method="post" class="panel form-grid" style="grid-template-columns:1fr">{% csrf_token %}
+    {% include "_field.html" with field=form.number %}
+    {% include "_field.html" with field=form.email %}
+    <button class="btn btn-primary btn-block">Провери статуса</button>
+  </form>
+</div></section>
+{% endblock %}

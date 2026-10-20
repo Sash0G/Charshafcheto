@@ -1,0 +1,19 @@
+{% extends "accounts/_layout.html" %}
+{% block panel %}
+<div class="panel">
+  <h2>Лични данни</h2>
+  <form method="post" class="form-grid">{% csrf_token %}
+    {% include "_field.html" with field=form.first_name %}
+    {% include "_field.html" with field=form.last_name %}
+    <div class="field full"><label>Имейл</label><input value="{{ user.email }}" disabled></div>
+    {% include "_field.html" with field=form.phone class="full" %}
+    {% include "_field.html" with field=form.marketing_consent class="full" %}
+    <div class="field full form-actions"><button class="btn btn-primary">Запази промените</button><a class="text-link" href="{% url 'accounts:password_change' %}">Смяна на паролата</a></div>
+  </form>
+</div>
+<div class="panel" style="margin-top:16px">
+  <h2>Поверителност</h2>
+  <p class="muted">Можете да изтеглите всички данни, които съхраняваме за вас, или да изтриете профила си.</p>
+  <div class="form-actions"><a class="btn btn-secondary" href="{% url 'accounts:export' %}">Изтегли моите данни</a><a class="btn btn-ghost" style="color:var(--red)" href="{% url 'accounts:delete' %}">Изтрий профила</a></div>
+</div>
+{% endblock %}
